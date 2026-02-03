@@ -1,0 +1,201 @@
+{
+  "info": {
+    "name": "ProgressIQ API - Full Test Suite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "progressiq-full"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "adminToken", "value": "" },
+    { "key": "studentToken", "value": "" },
+    { "key": "mentorToken", "value": "" },
+    { "key": "studentId", "value": "660000000000000000000101" },
+    { "key": "mentorId", "value": "660000000000000000000201" },
+    { "key": "projectId", "value": "660000000000000000000301" },
+    { "key": "surveyId", "value": "660000000000000000000401" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"email\": \"admin@college.edu\",\n  \"password\": \"ChangeMe123!\"\n}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Login (Mentor)",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"email\": \"arun.kumar@college.edu\",\n  \"password\": \"mentor123\"\n}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Login (Student)",
+          "request": {
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\n  \"email\": \"student1@college.edu\",\n  \"password\": \"student123\"\n}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Management",
+          "item": [
+            { "name": "Get Users", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/users?page=1&limit=20" } },
+            { "name": "Get User (by id)", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/users/{{studentId}}" } },
+            { "name": "Create Student User", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"email\": \"studentnew@college.edu\",\n  \"firstName\": \"New\",\n  \"lastName\": \"Student\"\n}" }, "url": "{{baseUrl}}/api/admin/users/students" } },
+            { "name": "Create Admin User", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"email\": \"admin2@college.edu\",\n  \"password\": \"SecurePass123\"\n}" }, "url": "{{baseUrl}}/api/admin/users/admins" } },
+            { "name": "Update User", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"firstName\": \"Updated\"\n}" }, "url": "{{baseUrl}}/api/admin/users/{{studentId}}" } },
+            { "name": "Delete User", "request": { "method": "DELETE", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/users/{{studentId}}" } }
+          ]
+        },
+        {
+          "name": "Students",
+          "item": [
+            { "name": "List Students", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/students" } },
+            { "name": "Create Student", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"email\": \"student1@college.edu\",\n  \"firstName\": \"Thayanithi\",\n  \"lastName\": \"S\"\n}" }, "url": "{{baseUrl}}/api/admin/students" } },
+            { "name": "Get Student (by id)", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/students/{{studentId}}" } },
+            { "name": "Update Student", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"place\": \"Coimbatore\"\n}" }, "url": "{{baseUrl}}/api/admin/students/{{studentId}}" } },
+            { "name": "Delete Student", "request": { "method": "DELETE", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/students/{{studentId}}" } }
+          ]
+        },
+        {
+          "name": "Mentors",
+          "item": [
+            { "name": "List Mentors", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/mentors" } },
+            { "name": "Create Mentor", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"name\": \"Dr. Arun Kumar\",\n  \"email\": \"arun.kumar@college.edu\"\n}" }, "url": "{{baseUrl}}/api/admin/mentors" } },
+            { "name": "Get Mentor (by id)", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/mentors/{{mentorId}}" } },
+            { "name": "Update Mentor", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"place\": \"Chennai\"\n}" }, "url": "{{baseUrl}}/api/admin/mentors/{{mentorId}}" } },
+            { "name": "Delete Mentor", "request": { "method": "DELETE", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/mentors/{{mentorId}}" } }
+          ]
+        },
+        {
+          "name": "Mappings",
+          "item": [
+            { "name": "Map Students to Mentor (bulk)", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"mentorId\": \"{{mentorId}}\",\n  \"studentIds\": [\"{{studentId}}\"]\n}" }, "url": "{{baseUrl}}/api/admin/mappings" } }
+          ]
+        },
+        {
+          "name": "Projects & Content",
+          "item": [
+            { "name": "List Projects", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/projects" } },
+            { "name": "Get Project", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/projects/{{projectId}}" } },
+            { "name": "List Certifications", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/certifications" } },
+            { "name": "List Tasks", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/tasks" } }
+          ]
+        },
+        {
+          "name": "Analytics & Reporting",
+          "item": [
+            { "name": "Get Stats", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/stats" } },
+            { "name": "Top Students", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/top-students" } },
+            { "name": "Generate Report", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"type\": \"pdf\",\n  \"filter\": {\"department\": \"CSE\"}\n}" }, "url": "{{baseUrl}}/api/admin/reports" } }
+          ]
+        },
+        {
+          "name": "Logs",
+          "item": [
+            { "name": "Get Logs", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{adminToken}}"}], "url": "{{baseUrl}}/api/admin/logs" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mentor",
+      "item": [
+        {
+          "name": "Dashboard",
+          "item": [
+            { "name": "Get Mentor Stats", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "url": "{{baseUrl}}/api/mentors/stats" } }
+          ]
+        },
+        {
+          "name": "Management",
+          "item": [
+            { "name": "Assigned Students", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "url": "{{baseUrl}}/api/mentors/assigned-students?mentorId={{mentorId}}" } },
+            { "name": "List Mentor Projects", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "url": "{{baseUrl}}/api/mentors/projects" } },
+            { "name": "List Mentor Tasks", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "url": "{{baseUrl}}/api/mentors/tasks" } }
+          ]
+        },
+        {
+          "name": "Approvals & Feedback",
+          "item": [
+            { "name": "List Approvals", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "url": "{{baseUrl}}/api/mentors/approvals" } },
+            { "name": "Update Approval", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "body": {"mode":"raw","raw":"{\n  \"status\": \"Approved\",\n  \"points\": 50,\n  \"feedback\": \"Good work\"\n}" }, "url": "{{baseUrl}}/api/mentors/approvals/{{projectId}}" } },
+            { "name": "Approve Entity", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "body": {"mode":"raw","raw":"{\n  \"entityType\": \"PROJECT\",\n  \"entityId\": \"{{projectId}}\",\n  \"studentId\": \"{{studentId}}\",\n  \"status\": \"Approved\"\n}" }, "url": "{{baseUrl}}/api/mentors/approve" } },
+            { "name": "Give Feedback", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "body": {"mode":"raw","raw":"{\n  \"studentId\": \"{{studentId}}\",\n  \"message\": \"Needs improvement\"\n}" }, "url": "{{baseUrl}}/api/mentors/feedback" } },
+            { "name": "Award Points", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "body": {"mode":"raw","raw":"{\n  \"studentId\": \"{{studentId}}\",\n  \"source\": \"PROJECT_COMPLETION\",\n  \"points\": 60\n}" }, "url": "{{baseUrl}}/api/mentors/points" } }
+          ]
+        },
+        {
+          "name": "Surveys",
+          "item": [
+            { "name": "Create Survey", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "body": {"mode":"raw","raw":"{\n  \"title\": \"Internship Feedback\",\n  \"questions\": [\"Was the internship useful?\"]\n}" }, "url": "{{baseUrl}}/api/mentors/surveys" } },
+            { "name": "List Surveys", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{mentorToken}}"}], "url": "{{baseUrl}}/api/mentors/surveys" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Student",
+      "item": [
+        {
+          "name": "Dashboard",
+          "item": [
+            { "name": "Get Dashboard", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/students/dashboard" } },
+            { "name": "Get Notifications", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/notifications" } }
+          ]
+        },
+        {
+          "name": "Projects",
+          "item": [
+            { "name": "Create Project", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{studentToken}}"}], "body": {"mode":"raw","raw":"{\n  \"title\": \"Smart Activity Reporting Dashboard\",\n  \"description\": \"Role-based academic tracker\"\n}" }, "url": "{{baseUrl}}/api/students/projects" } },
+            { "name": "List My Projects", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/students/projects" } }
+          ]
+        },
+        {
+          "name": "Tasks",
+          "item": [
+            { "name": "List My Tasks", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/students/tasks" } },
+            { "name": "Update Task", "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{studentToken}}"}], "body": {"mode":"raw","raw":"{\n  \"status\": \"Completed\"\n}" }, "url": "{{baseUrl}}/api/students/tasks/{{projectId}}" } }
+          ]
+        },
+        {
+          "name": "Activity & Surveys",
+          "item": [
+            { "name": "Submit Daily Log", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{studentToken}}"}], "body": {"mode":"raw","raw":"{\n  \"date\": \"2026-02-03\",\n  \"activity\": \"Worked on approvals flow\",\n  \"hoursSpent\": 4\n}" }, "url": "{{baseUrl}}/api/students/daily-log" } },
+            { "name": "List Surveys", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/students/surveys" } },
+            { "name": "Respond to Survey", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{studentToken}}"}], "body": {"mode":"raw","raw":"{\n  \"answers\": [\"Yes, very useful\", \"Excellent\"]\n}" }, "url": "{{baseUrl}}/api/students/surveys/{{surveyId}}/respond" } }
+          ]
+        },
+        {
+          "name": "Profile & Rankings",
+          "item": [
+            { "name": "Get My Profile", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/students/profile" } },
+            { "name": "My Points", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/students/points" } },
+            { "name": "My Ranking", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/students/ranking" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        { "name": "Create Notification (Admin)", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Authorization","value":"Bearer {{adminToken}}"}], "body": {"mode":"raw","raw":"{\n  \"userId\": \"{{studentId}}\",\n  \"message\": \"Your project has been approved\",\n  \"type\": \"APPROVAL\"\n}" }, "url": "{{baseUrl}}/api/notifications" } },
+        { "name": "Mark Notification Read", "request": { "method": "POST", "header": [{"key":"Authorization","value":"Bearer {{studentToken}}"}], "url": "{{baseUrl}}/api/notifications/{{projectId}}/read" } }
+      ]
+    }
+  ]
+}
