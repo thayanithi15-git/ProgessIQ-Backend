@@ -17,6 +17,7 @@ const PORT = process.env.PORT || 3000;
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
+  "https://progress-iq.vercel.app",
   process.env.CLIENT_URL
 ].filter(Boolean);
 
