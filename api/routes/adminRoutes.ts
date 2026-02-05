@@ -10,6 +10,18 @@ router.use(requireAdmin as any);
 // Dashboard
 router.get('/stats', adminController.getAdminStats);
 router.get('/top-students', adminController.getTopStudents);
+router.get('/charts/activities', adminController.getActivityChart);
+router.get('/charts/points-trend', adminController.getPointsTrendChart);
+router.get('/charts/monthly-submissions', adminController.getMonthlySubmissions);
+
+// Pie Charts
+router.get('/charts/department-distribution', adminController.getDepartmentDistribution);
+router.get('/charts/year-distribution', adminController.getYearDistribution);
+router.get('/charts/project-status', adminController.getProjectStatusChart);
+router.get('/charts/internship-types', adminController.getInternshipTypesChart);
+
+// Bar Charts
+router.get('/charts/points-by-source', adminController.getPointsBySource);
 
 // Users
 router.get('/users', adminController.listUsers);
