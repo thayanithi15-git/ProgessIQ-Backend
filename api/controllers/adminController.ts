@@ -21,9 +21,67 @@ export const createStudent = async (req: Request, res: Response) => {
 };
 
 export const getStudents = async (req: Request, res: Response) => {
-  const students = await Student.find().populate('userId', 'email');
-  res.json({ students });
+
+  const {
+    page = "1",
+    limit = "20",
+    department,
+    year,
+    status,
+    name,
+    email,
+  } = req.query;
+
+  const pageNum = parseInt(page as string);
+  const limitNum = parseInt(limit as string);
+
+  const filter: any = {};
+
+  if (department) filter.department = department;
+  if (year) filter.year = year;
+  if (status) filter.status = status;
+
+  // ----- Name search -----
+  if (name) {
+    filter.name = { $regex: name, $options: "i" };
+  }
+
+  // ----- Email search from User collection -----
+  if (email) {
+    const users = await User.find({
+      email: { $regex: email, $options: "i" },
+    }).select("_id");
+
+    const userIds = users.map((u) => u._id);
+
+    filter.userId = { $in: userIds };
+  }
+
+  const students = await Student.find(filter)
+    .populate("userId", "email")
+    .skip((pageNum - 1) * limitNum)
+    .limit(limitNum);
+
+  const total = await Student.countDocuments(filter);
+
+  res.json({
+    students,
+    pagination: {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    },
+  });
 };
+
+
+export const getStudentById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const student = await Student.findById(id).populate('userId', 'email');
+  if (!student) return res.status(404).json({ message: 'Not found' });
+  res.json({ student });
+}
 
 export const updateStudent = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -55,6 +113,13 @@ export const getMentors = async (req: Request, res: Response) => {
   const mentors = await Mentor.find();
   res.json({ mentors });
 };
+
+export const getMentorById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const mentor = await Mentor.findById(id);
+  if (!mentor) return res.status(404).json({ message: 'Not found' });
+  res.json({ mentor });
+}
 
 export const updateMentor = async (req: Request, res: Response) => {
   const { id } = req.params;

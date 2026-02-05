@@ -34,12 +34,14 @@ router.delete('/users/:id', adminController.deleteUser);
 // Students (legacy)
 router.post('/students', adminController.createStudent);
 router.get('/students', adminController.getStudents);
+router.get('/students/:id', adminController.getStudentById);
 router.put('/students/:id', adminController.updateStudent);
 router.delete('/students/:id', adminController.deleteStudent);
 
 // Mentors
 router.post('/mentors', adminController.createMentor);
 router.get('/mentors', adminController.getMentors);
+router.get('/mentors/:id', adminController.getMentorById);
 router.put('/mentors/:id', adminController.updateMentor);
 router.delete('/mentors/:id', adminController.deleteMentor);
 

@@ -12,8 +12,10 @@ export const login = async (req: Request, res: Response) => {
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
   // Direct comparison instead of bcrypt
-  const match = password === user.passwordHash;
-  if (!match) return res.status(401).json({ message: 'Invalid credentials' });
+  const match = await bcrypt.compare(password, user.passwordHash);
+
+  if (!match)
+    return res.status(401).json({ message: 'Invalid credentials' });
 
   const token = signToken({ id: user._id, role: user.role });
   res.json({ token, role: user.role, userId: user._id });
