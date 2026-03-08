@@ -58,6 +58,19 @@ router.get('/logs', adminController.listLogs);
 
 // Reports
 router.post('/reports', adminController.generateReport);
+router.post('/reports/preview', adminController.previewReport);
+router.get('/reports/history', adminController.getReportHistory);
+router.get('/reports/download/:reportId', adminController.downloadReport);
+router.delete('/reports/:reportId', adminController.deleteReport);
+
+// Report Options
+router.get('/options/departments', adminController.getDepartments);
+router.get('/options/years', adminController.getYears);
+router.get('/options/mentors', adminController.getMentors);
+router.get('/options/platforms', adminController.getPlatforms);
+
+// Report Statistics
+router.get('/reports/stats', adminController.getReportStats);
 
 // Mentor-Student mapping
 router.post('/mappings', adminController.mapStudentsToMentor);
