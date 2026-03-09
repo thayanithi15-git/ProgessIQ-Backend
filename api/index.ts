@@ -40,14 +40,12 @@ app.use(helmet());
 app.use(express.json({ limit: "10mb" }));
 app.use(mongoSanitize());
 
-// Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
 });
 app.use(limiter);
 
-// ================= DB CONNECTION =================
 
 const connectDB = async () => {
   try {
@@ -106,7 +104,7 @@ import notificationsRoutes from "./routes/notificationsRoutes";
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/mentors", mentorRoutes);
-app.use("/api/students", studentRoutes);
+app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationsRoutes);
 
 import { errorHandler } from "./middleware/errorHandler";

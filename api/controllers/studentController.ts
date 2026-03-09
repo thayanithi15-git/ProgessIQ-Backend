@@ -6,10 +6,10 @@ import Point from '../models/Point';
 
 export const getDashboard = async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const tasks = await Task.find({ studentId: user.id });
-  const projects = await Project.find({ studentId: user.id });
-  const logs = await DailyActivityLog.find({ studentId: user.id });
-  const points = await Point.find({ studentId: user.id });
+  const tasks = await Task.find({ studentId: user.studentId });
+  const projects = await Project.find({ studentId: user.studentId });
+  const logs = await DailyActivityLog.find({ studentId: user.studentId });
+  const points = await Point.find({ studentId: user.studentId });
 
   const chartData = {
     weeklyHours: [2, 4, 5, 3, 6, 0, 2],
@@ -30,7 +30,7 @@ export const getDashboard = async (req: Request, res: Response) => {
 export const submitDailyLog = async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { date, activity, hoursSpent } = req.body;
-  const log = new DailyActivityLog({ studentId: user.id, date, activity, hoursSpent });
+  const log = new DailyActivityLog({ studentId: user.studentId, date, activity, hoursSpent });
   await log.save();
   res.status(201).json({ log });
 };

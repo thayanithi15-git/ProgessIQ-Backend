@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
 import User from '../models/User';
+import Student from '../models/Student';
+import Mentor from '../models/Mentor';
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
@@ -10,7 +12,22 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const payload = verifyToken(token) as { id: string; role: string };
     const user = await User.findById(payload.id);
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
-    (req as any).user = { id: user._id.toString(), role: user.role, email: user.email };
+    
+    let userData: any = { id: user._id.toString(), role: user.role, email: user.email };
+    
+    if (user.role === 'STUDENT') {
+      const student = await Student.findOne({ userId: user._id });
+      if (student) {
+        userData.studentId = student._id.toString();
+      }
+    } else if (user.role === 'MENTOR') {
+      const mentor = await Mentor.findOne({ email: user.email });
+      if (mentor) {
+        userData.mentorId = mentor._id.toString();
+      }
+    }
+    
+    (req as any).user = userData;
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Invalid token' });
