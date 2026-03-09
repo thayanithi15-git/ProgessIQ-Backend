@@ -15,7 +15,10 @@ router.post('/feedback', mentorController.giveFeedback);
 router.post('/points', mentorController.awardPoints);
 router.post('/surveys', mentorController.createSurvey);
 router.get('/surveys', mentorController.listSurveys);
+router.get('/surveys/:id/responses', mentorController.getSurveyResponses);
 router.get('/projects', mentorController.listMentorProjects);
 router.get('/tasks', mentorController.listMentorTasks);
+router.get('/certifications', mentorController.listMentorCertifications);
+router.get('/internships', mentorController.listMentorInternships);
 
 export default router;
