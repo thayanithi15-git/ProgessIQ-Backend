@@ -40,6 +40,10 @@ const router = (0, express_1.Router)();
 router.use(roles_1.requireStudent);
 // ========== DASHBOARD ==========
 router.get('/dashboard', studentController.getStudentDashboard);
+router.get('/heatmap', studentController.getHeatmapData);
+router.get('/charts/points-trend', studentController.getPointsTrendChart);
+router.get('/charts/monthly-activity', studentController.getMonthlyActivityChart);
+router.get('/charts/task-completion', studentController.getTaskCompletionChart);
 router.get('/activity-logs', studentController.getActivityLogs);
 router.post('/activity-logs', studentController.submitActivityLog);
 // ========== PROJECTS ==========

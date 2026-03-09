@@ -103,7 +103,7 @@ import notificationsRoutes from "./routes/notificationsRoutes";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/mentors", mentorRoutes);
+app.use("/api/mentor", mentorRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationsRoutes);
 

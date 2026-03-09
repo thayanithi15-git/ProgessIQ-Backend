@@ -41,7 +41,29 @@ export const createSurvey = async (req: Request, res: Response) => {
 export const listSurveys = async (req: Request, res: Response) => {
   try {
     const mentorId = (req as any).user.mentorId || (req as any).user.id;
-    const surveys = await Survey.find({ mentorId }).sort({ createdAt: -1 });
+    const {
+      page = 1,
+      limit = 20,
+      search = '',
+      status
+    } = req.query as any;
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    const filter: any = { mentorId };
+    if (status) filter.status = status;
+    if (search) {
+      filter.$or = [
+        { title: { $regex: String(search), $options: 'i' } },
+        { description: { $regex: String(search), $options: 'i' } }
+      ];
+    }
+
+    const [surveys, total] = await Promise.all([
+      Survey.find(filter).sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
+      Survey.countDocuments(filter)
+    ]);
 
     const surveyIds = surveys.map(s => s._id);
     const responseCounts = await SurveyResponse.aggregate([
@@ -61,7 +83,16 @@ export const listSurveys = async (req: Request, res: Response) => {
       status: s.status || 'Active'
     }));
 
-    res.json({ success: true, data });
+    res.json({
+      success: true,
+      data,
+      pagination: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
+      }
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, message: 'Failed to fetch surveys', error: error.message });
   }
@@ -71,6 +102,15 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
   try {
     const mentorId = (req as any).user.mentorId || (req as any).user.id;
     const { id } = req.params;
+    const {
+      page = 1,
+      limit = 20,
+      search = '',
+      department,
+      year
+    } = req.query as any;
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
     const survey = await Survey.findOne({ _id: id, mentorId });
     if (!survey) {
@@ -82,7 +122,7 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
       populate: { path: 'userId', select: 'email' }
     });
 
-    const data = responses.map((r: any) => ({
+    let data = responses.map((r: any) => ({
       responseId: r._id,
       student: {
         id: r.studentId?._id,
@@ -98,6 +138,20 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
       }))
     }));
 
+    if (department) data = data.filter((row: any) => row.student.department === department);
+    if (year) data = data.filter((row: any) => row.student.year === year);
+    if (search) {
+      const q = String(search).toLowerCase();
+      data = data.filter((row: any) =>
+        row.student.name.toLowerCase().includes(q) ||
+        row.student.email.toLowerCase().includes(q) ||
+        row.answers.some((a: any) => String(a.answer || '').toLowerCase().includes(q))
+      );
+    }
+
+    const total = data.length;
+    const paginated = data.slice((parsedPage - 1) * parsedLimit, parsedPage * parsedLimit);
+
     res.json({
       success: true,
       data: {
@@ -106,7 +160,13 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
           title: survey.title,
           questions: survey.questions || []
         },
-        responses: data
+        responses: paginated
+      },
+      pagination: {
+        total,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages: Math.ceil(total / parsedLimit)
       }
     });
   } catch (error: any) {

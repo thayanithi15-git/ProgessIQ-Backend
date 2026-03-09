@@ -6,6 +6,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateSurveyResponse = exports.getSurveyResponses = exports.respondToSurvey = exports.getSurveyById = exports.listAvailableSurveys = void 0;
 const Survey_1 = __importDefault(require("../../models/Survey"));
 const SurveyResponse_1 = __importDefault(require("../../models/SurveyResponse"));
+function normalizeQuestions(questions) {
+    return (questions || []).map((q) => {
+        if (typeof q === 'string') {
+            return {
+                question: q,
+                type: 'TEXT',
+                options: [],
+                required: true
+            };
+        }
+        return {
+            question: q?.question || '',
+            type: q?.type || 'TEXT',
+            options: Array.isArray(q?.options) ? q.options : [],
+            required: typeof q?.required === 'boolean' ? q.required : true
+        };
+    });
+}
+function getMentorName(survey) {
+    const mentor = survey?.mentorId;
+    if (!mentor)
+        return 'Mentor';
+    if (typeof mentor === 'string')
+        return 'Mentor';
+    if (mentor.name)
+        return mentor.name;
+    return 'Mentor';
+}
 /**
  * GET ALL SURVEYS POSTED BY MENTOR
  * GET /api/student/surveys
@@ -13,31 +41,37 @@ const SurveyResponse_1 = __importDefault(require("../../models/SurveyResponse"))
 const listAvailableSurveys = async (req, res) => {
     try {
         const studentId = req.user.studentId;
-        const { limit = 20, skip = 0, answered = false } = req.query;
+        const { limit = 20, skip = 0 } = req.query;
+        const parsedLimit = parseInt(limit);
+        const parsedSkip = parseInt(skip);
         // Get surveys posted for this student's mentor
         const surveys = await Survey_1.default.find()
-            .populate('createdBy', 'firstName lastName')
+            .populate('mentorId', 'name')
             .sort({ createdAt: -1 })
-            .skip(parseInt(skip))
-            .limit(parseInt(limit));
+            .skip(parsedSkip)
+            .limit(parsedLimit);
         // Get responses for this student
         const responses = await SurveyResponse_1.default.find({ studentId }).select('surveyId');
         const respondedSurveyIds = responses.map(r => r.surveyId.toString());
-        const total = await Survey_1.default.countDocuments();
         // Add response status to surveys
-        const surveysWithStatus = surveys.map(survey => ({
-            ...survey.toObject(),
-            hasResponded: respondedSurveyIds.includes(survey._id.toString()),
-            postedBy: survey.createdBy?.firstName + ' ' + (survey.createdBy?.lastName || '')
-        }));
+        const surveysWithStatus = surveys.map(survey => {
+            const surveyObj = survey.toObject();
+            return {
+                ...surveyObj,
+                questions: normalizeQuestions(surveyObj.questions),
+                hasResponded: respondedSurveyIds.includes(survey._id.toString()),
+                postedBy: getMentorName(surveyObj)
+            };
+        });
+        const total = await Survey_1.default.countDocuments();
         res.json({
             success: true,
             data: {
                 surveys: surveysWithStatus,
                 pagination: {
                     total,
-                    limit: parseInt(limit),
-                    skip: parseInt(skip)
+                    limit: parsedLimit,
+                    skip: parsedSkip
                 }
             }
         });
@@ -55,7 +89,7 @@ const getSurveyById = async (req, res) => {
     try {
         const studentId = req.user.studentId;
         const { id } = req.params;
-        const survey = await Survey_1.default.findById(id).populate('createdBy', 'firstName lastName');
+        const survey = await Survey_1.default.findById(id).populate('mentorId', 'name');
         if (!survey) {
             return res.status(404).json({ success: false, message: 'Survey not found' });
         }
@@ -65,9 +99,15 @@ const getSurveyById = async (req, res) => {
             success: true,
             data: {
                 ...survey.toObject(),
+                questions: normalizeQuestions(survey.toObject().questions),
                 hasResponded: !!existingResponse,
-                previousAnswer: existingResponse ? existingResponse.answers : null,
-                postedBy: survey.createdBy?.firstName + ' ' + (survey.createdBy?.lastName || '')
+                previousAnswer: existingResponse
+                    ? existingResponse.answers.reduce((acc, ans, idx) => {
+                        acc[idx] = ans;
+                        return acc;
+                    }, {})
+                    : null,
+                postedBy: getMentorName(survey.toObject())
             }
         });
     }
@@ -85,9 +125,18 @@ const respondToSurvey = async (req, res) => {
         const studentId = req.user.studentId;
         const { id } = req.params;
         const { answers } = req.body;
-        if (!answers) {
+        if (!answers || typeof answers !== 'object') {
             return res.status(400).json({ success: false, message: 'Answers are required' });
         }
+        const normalizedAnswers = Object.keys(answers)
+            .sort((a, b) => Number(a) - Number(b))
+            .map((key) => {
+            const value = answers[key];
+            if (Array.isArray(value)) {
+                return value.join(', ');
+            }
+            return String(value ?? '');
+        });
         // Check if survey exists
         const survey = await Survey_1.default.findById(id);
         if (!survey) {
@@ -101,7 +150,7 @@ const respondToSurvey = async (req, res) => {
         const response = new SurveyResponse_1.default({
             surveyId: id,
             studentId,
-            answers,
+            answers: normalizedAnswers,
             submittedAt: new Date()
         });
         await response.save();
@@ -131,7 +180,8 @@ const getSurveyResponses = async (req, res) => {
         }
         const survey = response.surveyId;
         // Format questions and answers together
-        const questionsWithAnswers = survey.questions.map((question, index) => ({
+        const normalizedQuestions = normalizeQuestions(survey.questions);
+        const questionsWithAnswers = normalizedQuestions.map((question, index) => ({
             question,
             answer: response.answers[index],
             questionIndex: index
@@ -160,10 +210,19 @@ const updateSurveyResponse = async (req, res) => {
         const studentId = req.user.studentId;
         const { id } = req.params;
         const { answers } = req.body;
-        if (!answers) {
+        if (!answers || typeof answers !== 'object') {
             return res.status(400).json({ success: false, message: 'Answers are required' });
         }
-        const response = await SurveyResponse_1.default.findOneAndUpdate({ surveyId: id, studentId }, { answers, updatedAt: new Date() }, { new: true });
+        const normalizedAnswers = Object.keys(answers)
+            .sort((a, b) => Number(a) - Number(b))
+            .map((key) => {
+            const value = answers[key];
+            if (Array.isArray(value)) {
+                return value.join(', ');
+            }
+            return String(value ?? '');
+        });
+        const response = await SurveyResponse_1.default.findOneAndUpdate({ surveyId: id, studentId }, { answers: normalizedAnswers, updatedAt: new Date() }, { new: true });
         if (!response) {
             return res.status(404).json({ success: false, message: 'Response not found' });
         }

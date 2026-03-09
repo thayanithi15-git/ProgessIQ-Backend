@@ -1,8 +1,8 @@
-export { getAssignedStudents, approveEntity, giveFeedback, awardPoints } from '../mentorController';
+export { getAssignedStudents, getAssignedStudentProfile, approveEntity, giveFeedback, awardPoints } from '../mentorController';
 export { getMentorStats } from './dashboard';
-export { listApprovals, updateApproval } from './approvals';
+export { listApprovals, updateApproval, getApprovalStats, listSubmissions, getSubmissionDetail, reviewSubmission } from './approvals';
 export { createSurvey, listSurveys, getSurveyResponses } from './surveys';
-export { listMentorProjects } from './projects';
-export { listMentorTasks } from './tasks';
-export { listMentorCertifications } from './certifications';
-export { listMentorInternships } from './internships';
+export { listMentorProjects, getMentorProjectById } from './projects';
+export { listMentorTasks, getMentorTaskById, createMentorTask } from './tasks';
+export { listMentorCertifications, getMentorCertificationById } from './certifications';
+export { listMentorInternships, getMentorInternshipById } from './internships';

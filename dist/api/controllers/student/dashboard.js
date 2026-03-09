@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.submitActivityLog = exports.getActivityLogs = exports.getStudentDashboard = void 0;
+exports.getHeatmapData = exports.submitActivityLog = exports.getActivityLogs = exports.getTaskCompletionChart = exports.getMonthlyActivityChart = exports.getPointsTrendChart = exports.getStudentDashboard = void 0;
 const Student_1 = __importDefault(require("../../models/Student"));
 const Mentor_1 = __importDefault(require("../../models/Mentor"));
 const Project_1 = __importDefault(require("../../models/Project"));
@@ -14,6 +14,7 @@ const DailyActivityLog_1 = __importDefault(require("../../models/DailyActivityLo
 const Ranking_1 = __importDefault(require("../../models/Ranking"));
 const Feedback_1 = __importDefault(require("../../models/Feedback"));
 const Internship_1 = __importDefault(require("../../models/Internship"));
+const mongoose_1 = __importDefault(require("mongoose"));
 /**
  * GET /api/student/dashboard
  * Returns complete student dashboard with stats, charts, and heatmap data
@@ -71,8 +72,9 @@ const getStudentDashboard = async (req, res) => {
         const totalPoints = pointsData.reduce((sum, p) => sum + p.points, 0);
         // Get ranking
         const ranking = await Ranking_1.default.findOne({ studentId });
-        // Get activity heatmap data (last 365 days)
-        const activityData = await getHeatmapData(studentId);
+        // Get points heatmap data for current year
+        const currentYear = new Date().getFullYear();
+        const activityData = await getPointsHeatmapData(studentId, currentYear);
         // Get activity logs for stats
         const activityLogs = await DailyActivityLog_1.default.find({ studentId });
         const totalHoursSpent = activityLogs.reduce((sum, log) => sum + log.hoursSpent, 0);
@@ -159,21 +161,43 @@ const getStudentDashboard = async (req, res) => {
 };
 exports.getStudentDashboard = getStudentDashboard;
 /**
- * Generate heatmap data for the last 365 days
+ * Generate points heatmap data for a year
  */
-async function getHeatmapData(studentId) {
-    const logs = await DailyActivityLog_1.default.find({ studentId });
-    const heatmapMap = {};
-    logs.forEach(log => {
-        const dateStr = new Date(log.date).toISOString().split('T')[0];
-        heatmapMap[dateStr] = (heatmapMap[dateStr] || 0) + log.hoursSpent;
+async function getPointsHeatmapData(studentId, year) {
+    const start = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
+    const end = new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0, 0));
+    const grouped = await Point_1.default.aggregate([
+        {
+            $match: {
+                studentId: new mongoose_1.default.Types.ObjectId(studentId),
+                awardedOn: { $gte: start, $lt: end }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    $dateToString: {
+                        format: '%Y-%m-%d',
+                        date: '$awardedOn'
+                    }
+                },
+                value: { $sum: '$points' }
+            }
+        },
+        { $sort: { _id: 1 } }
+    ]);
+    const maxValue = grouped.reduce((max, item) => Math.max(max, item.value || 0), 0);
+    return grouped.map((item) => {
+        const value = item.value || 0;
+        const intensity = maxValue > 0
+            ? Math.max(1, Math.min(4, Math.ceil((value / maxValue) * 4)))
+            : 0;
+        return {
+            date: item._id,
+            value,
+            intensity
+        };
     });
-    // Convert to array format for heatmap library
-    return Object.entries(heatmapMap).map(([date, hours]) => ({
-        date,
-        value: hours,
-        intensity: Math.min(Math.ceil(hours / 2), 5) // Scale to 1-5
-    }));
 }
 /**
  * Get monthly activity data for line chart
@@ -197,9 +221,8 @@ async function getMonthlyActivityData(studentId) {
  * Get points by source breakdown
  */
 async function getPointsBySourceBreakdown(studentId) {
-    const mongoose = require('mongoose');
     const breakdown = await Point_1.default.aggregate([
-        { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
+        { $match: { studentId: new mongoose_1.default.Types.ObjectId(studentId) } },
         { $group: { _id: '$source', points: { $sum: '$points' } } },
         { $sort: { points: -1 } }
     ]);
@@ -208,6 +231,135 @@ async function getPointsBySourceBreakdown(studentId) {
         points: b.points
     }));
 }
+function getDateFilter(filter) {
+    const now = new Date();
+    if (filter === 'week') {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return { $gte: weekAgo };
+    }
+    if (filter === 'month') {
+        const monthAgo = new Date(now);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        return { $gte: monthAgo };
+    }
+    if (filter === 'year') {
+        const yearAgo = new Date(now);
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+        return { $gte: yearAgo };
+    }
+    return {};
+}
+/**
+ * GET /api/student/charts/points-trend?filter=week|month|year
+ * Returns student points trend grouped by day
+ */
+const getPointsTrendChart = async (req, res) => {
+    try {
+        const studentId = req.user.studentId;
+        const filter = req.query.filter || 'month';
+        const awardedOnFilter = getDateFilter(filter);
+        const pointsData = await Point_1.default.aggregate([
+            {
+                $match: {
+                    studentId: new mongoose_1.default.Types.ObjectId(studentId),
+                    ...(Object.keys(awardedOnFilter).length ? { awardedOn: awardedOnFilter } : {})
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: { format: '%Y-%m-%d', date: '$awardedOn' }
+                    },
+                    points: { $sum: '$points' },
+                    awards: { $sum: 1 }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    date: '$_id',
+                    points: 1,
+                    awards: 1
+                }
+            }
+        ]);
+        res.json({ success: true, data: pointsData });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching points trend', error });
+    }
+};
+exports.getPointsTrendChart = getPointsTrendChart;
+/**
+ * GET /api/student/charts/monthly-activity?filter=week|month|year
+ * Returns student activity grouped by day
+ */
+const getMonthlyActivityChart = async (req, res) => {
+    try {
+        const studentId = req.user.studentId;
+        const filter = req.query.filter || 'month';
+        const dateFilter = getDateFilter(filter);
+        const activityData = await DailyActivityLog_1.default.aggregate([
+            {
+                $match: {
+                    studentId: new mongoose_1.default.Types.ObjectId(studentId),
+                    ...(Object.keys(dateFilter).length ? { date: dateFilter } : {})
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: { format: '%Y-%m-%d', date: '$date' }
+                    },
+                    hours: { $sum: '$hoursSpent' }
+                }
+            },
+            { $sort: { _id: 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    month: '$_id',
+                    hours: { $round: ['$hours', 2] }
+                }
+            }
+        ]);
+        res.json({ success: true, data: activityData });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching activity chart', error });
+    }
+};
+exports.getMonthlyActivityChart = getMonthlyActivityChart;
+/**
+ * GET /api/student/charts/task-completion
+ * Returns task status totals
+ */
+const getTaskCompletionChart = async (req, res) => {
+    try {
+        const studentId = req.user.studentId;
+        const tasks = await Task_1.default.find({ studentId }).select('status dueDate');
+        const completed = tasks.filter(t => t.status === 'COMPLETED').length;
+        const pending = tasks.filter(t => t.status === 'PENDING').length;
+        const overdue = tasks.filter(t => t.status !== 'COMPLETED' && t.dueDate < new Date()).length;
+        res.json({
+            success: true,
+            data: [
+                {
+                    month: new Date().toISOString().slice(0, 7),
+                    completed,
+                    pending,
+                    overdue
+                }
+            ]
+        });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching task completion', error });
+    }
+};
+exports.getTaskCompletionChart = getTaskCompletionChart;
 /**
  * GET /api/student/activity-logs
  * Get all activity logs for the student
@@ -273,3 +425,23 @@ const submitActivityLog = async (req, res) => {
     }
 };
 exports.submitActivityLog = submitActivityLog;
+/**
+ * GET /api/student/heatmap?year=YYYY
+ * Returns points heatmap data grouped by day for the given year
+ */
+const getHeatmapData = async (req, res) => {
+    try {
+        const studentId = req.user.studentId;
+        const requestedYear = parseInt(req.query.year);
+        const year = Number.isFinite(requestedYear) ? requestedYear : new Date().getFullYear();
+        const data = await getPointsHeatmapData(studentId, year);
+        res.json({
+            success: true,
+            data
+        });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching heatmap data', error });
+    }
+};
+exports.getHeatmapData = getHeatmapData;
