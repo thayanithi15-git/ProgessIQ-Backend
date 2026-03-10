@@ -9,8 +9,39 @@ import Project from '../models/Project';
 import Task from '../models/Task';
 import Certification from '../models/Certification';
 import Internship from '../models/Internship';
+import Mentor from '../models/Mentor';
 
 const getMentorId = (req: Request) => (req as any).user.mentorId || (req as any).user.id;
+
+export const getMentorProfile = async (req: Request, res: Response) => {
+  try {
+    const mentorId = (req as any).user.mentorId;
+    const email = (req as any).user.email;
+
+    const mentor = mentorId
+      ? await Mentor.findById(mentorId)
+      : await Mentor.findOne({ email });
+
+    if (!mentor) {
+      return res.status(404).json({ success: false, message: 'Mentor profile not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: mentor._id,
+        name: mentor.name,
+        email: mentor.email,
+        department: mentor.department,
+        designation: mentor.designation,
+        contactNo: mentor.contactNo,
+        place: mentor.place,
+      }
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to fetch mentor profile', error: error.message });
+  }
+};
 
 export const getAssignedStudents = async (req: Request, res: Response) => {
   try {

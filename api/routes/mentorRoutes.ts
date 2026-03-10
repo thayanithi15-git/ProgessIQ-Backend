@@ -6,6 +6,7 @@ const router = Router();
 
 router.use(requireMentor as any);
 
+router.get('/profile', mentorController.getMentorProfile);
 router.get('/stats', mentorController.getMentorStats);
 router.get('/assigned-students', mentorController.getAssignedStudents);
 router.get('/assigned-students/:id/profile', mentorController.getAssignedStudentProfile);

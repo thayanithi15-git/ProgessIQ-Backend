@@ -1,4 +1,4 @@
-export { getAssignedStudents, getAssignedStudentProfile, approveEntity, giveFeedback, awardPoints } from '../mentorController';
+export { getAssignedStudents, getAssignedStudentProfile, approveEntity, giveFeedback, awardPoints, getMentorProfile } from '../mentorController';
 export { getMentorStats } from './dashboard';
 export { listApprovals, updateApproval, getApprovalStats, listSubmissions, getSubmissionDetail, reviewSubmission } from './approvals';
 export { createSurvey, listSurveys, getSurveyResponses } from './surveys';
