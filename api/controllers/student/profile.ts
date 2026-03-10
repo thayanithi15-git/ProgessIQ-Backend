@@ -1,5 +1,6 @@
 import Student from '../../models/Student';
 import Mentor from '../../models/Mentor';
+import MentorStudentMapping from '../../models/MentorStudentMapping';
 import { Request, Response } from 'express';
 
 /**
@@ -19,11 +20,9 @@ export const getProfile = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
-    // Get mentor info
-    const mentor = await Mentor.findOne({ studentId }).populate({
-      path: 'userId',
-      select: 'email firstName lastName'
-    });
+    // Get mentor info via mapping
+    const mapping = await MentorStudentMapping.findOne({ studentId, isActive: true }).populate('mentorId');
+    const mentor = mapping?.mentorId as any;
 
     res.json({
       success: true,
@@ -46,11 +45,11 @@ export const getProfile = async (req: Request, res: Response) => {
         createdAt: student.createdAt,
         mentor: mentor ? {
           id: mentor._id,
-          name: `${mentor.userId?.firstName || ''} ${mentor.userId?.lastName || ''}`,
-          email: mentor.userId?.email,
+          name: mentor.name,
+          email: mentor.email,
           department: mentor.department,
-          expertise: mentor.expertise,
-          phone: mentor.phone
+          expertise: mentor.expertise || [],
+          phone: mentor.contactNo || null
         } : null
       }
     });
@@ -111,11 +110,9 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
-    // Get mentor with all details
-    const mentor = await Mentor.findOne({ studentId }).populate({
-      path: 'userId',
-      select: 'email firstName lastName'
-    });
+    // Get mentor with all details via mapping
+    const mapping = await MentorStudentMapping.findOne({ studentId, isActive: true }).populate('mentorId');
+    const mentor = mapping?.mentorId as any;
 
     res.json({
       success: true,
@@ -154,12 +151,12 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
         // Mentor Information
         mentorInfo: mentor ? {
           id: mentor._id,
-          fullName: `${mentor.userId?.firstName || ''} ${mentor.userId?.lastName || ''}`,
-          email: mentor.userId?.email,
+          name: mentor.name,
+          email: mentor.email,
           department: mentor.department,
           expertise: mentor.expertise || [],
-          phone: mentor.phone || null,
-          experience: mentor.experience || null
+          phone: mentor.contactNo || null,
+          experience: mentor.experience || mentor.designation || null
         } : null,
 
         // Account Information
