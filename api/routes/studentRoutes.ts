@@ -62,6 +62,8 @@ router.put('/surveys/:id/respond', studentController.updateSurveyResponse);
 router.get('/profile', studentController.getProfile);
 router.put('/profile', studentController.updateProfile);
 router.get('/profile/complete', studentController.getCompleteProfile);
+router.get('/profile/socials', studentController.getSocialLinks);
+router.post('/profile/socials', studentController.updateSocialLinks);
 
 // ========== RANKINGS ==========
 router.get('/rankings', studentController.getAllRankings);

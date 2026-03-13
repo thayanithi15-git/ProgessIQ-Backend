@@ -14,8 +14,8 @@ export const getDashboard = async (req: Request, res: Response) => {
   const chartData = {
     weeklyHours: [2, 4, 5, 3, 6, 0, 2],
     tasksCompletedByType: [
-      { type: 'Task', count: tasks.filter(t => t.status === 'Completed').length },
-      { type: 'Project', count: projects.filter(p => p.status === 'Completed').length }
+      { type: 'Task', count: tasks.filter(t => t.status === 'COMPLETED').length },
+      { type: 'Project', count: projects.filter(p => p.status === 'COMPLETED').length }
     ],
     leaderboardSample: [
       { studentId: 's1', name: 'Alice', points: 420 },

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as adminController from '../controllers/admin';
+import * as systemLogController from '../controllers/systemLogController';
 import { requireAdmin } from '../middleware/roles';
 
 const router = Router();
@@ -55,6 +56,9 @@ router.get('/tasks', adminController.listTasks);
 
 // Logs
 router.get('/logs', adminController.listLogs);
+
+// System Logs
+router.get('/system-logs', systemLogController.getSystemLogs);
 
 // Reports
 router.post('/reports', adminController.generateReport);

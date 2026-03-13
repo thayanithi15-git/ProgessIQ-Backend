@@ -57,7 +57,9 @@ export {
 export {
   getProfile,
   updateProfile,
-  getCompleteProfile
+  getCompleteProfile,
+  getSocialLinks,
+  updateSocialLinks
 } from './profile';
 
 // Rankings

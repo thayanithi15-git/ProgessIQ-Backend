@@ -1,6 +1,7 @@
 import Student from '../../models/Student';
 import Mentor from '../../models/Mentor';
 import MentorStudentMapping from '../../models/MentorStudentMapping';
+import OnlineProfile from '../../models/OnlineProfile';
 import { Request, Response } from 'express';
 
 /**
@@ -168,5 +169,48 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching complete profile', error });
+  }
+};
+
+/**
+ * GET SOCIAL LINKS
+ * GET /api/student/profile/socials
+ */
+export const getSocialLinks = async (req: import('express').Request, res: import('express').Response) => {
+  try {
+    const studentId = (req as any).user.studentId;
+    const OnlineProfile = require('../../models/OnlineProfile').default;
+    let profile = await OnlineProfile.findOne({ studentId });
+    if (!profile) return res.json({ success: true, data: null });
+    res.json({ success: true, data: profile });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching social links', error });
+  }
+};
+
+/**
+ * UPDATE SOCIAL LINKS
+ * POST /api/student/profile/socials
+ */
+export const updateSocialLinks = async (req: import('express').Request, res: import('express').Response) => {
+  try {
+    const studentId = (req as any).user.studentId;
+    const { github, linkedin, leetcode, portfolio, codechef } = req.body;
+    const OnlineProfile = require('../../models/OnlineProfile').default;
+    let profile = await OnlineProfile.findOne({ studentId });
+    if (profile) {
+      if (github !== undefined) profile.github = github;
+      if (linkedin !== undefined) profile.linkedin = linkedin;
+      if (leetcode !== undefined) profile.leetcode = leetcode;
+      if (portfolio !== undefined) profile.portfolio = portfolio;
+      if (codechef !== undefined) profile.codechef = codechef;
+      await profile.save();
+    } else {
+      profile = new OnlineProfile({ studentId, github, linkedin, leetcode, portfolio, codechef });
+      await profile.save();
+    }
+    res.json({ success: true, message: 'Social links updated', data: profile });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error updating social links', error });
   }
 };

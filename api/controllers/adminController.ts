@@ -64,8 +64,21 @@ export const getStudents = async (req: Request, res: Response) => {
 
   const total = await Student.countDocuments(filter);
 
+  const studentIds = students.map((s) => s._id);
+  const profiles = await require('../models/OnlineProfile').default.find({ studentId: { $in: studentIds } });
+  const profileMap: Record<string, any> = {};
+  profiles.forEach((p: any) => { profileMap[p.studentId.toString()] = { github: p.github, linkedin: p.linkedin, leetcode: p.leetcode, portfolio: p.portfolio, codechef: p.codechef }; });
+
+  const mappedStudents = students.map((s: any) => {
+    const studentData = s.toJSON ? s.toJSON() : s;
+    return {
+      ...studentData,
+      socials: profileMap[s._id.toString()] || null
+    };
+  });
+
   res.json({
-    students,
+    students: mappedStudents,
     pagination: {
       total,
       page: pageNum,

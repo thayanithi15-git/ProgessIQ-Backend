@@ -5,7 +5,8 @@ const onlineProfileSchema = new mongoose.Schema({
   github: { type: String },
   linkedin: { type: String },
   leetcode: { type: String },
-  portfolio: { type: String }
+  portfolio: { type: String },
+  codechef: { type: String }
 });
 
 const OnlineProfile = mongoose.model('OnlineProfile', onlineProfileSchema);

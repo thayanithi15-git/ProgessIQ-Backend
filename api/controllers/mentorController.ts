@@ -113,6 +113,10 @@ export const getAssignedStudents = async (req: Request, res: Response) => {
     certAgg.forEach((p) => { certMap[p._id.toString()] = p.total; });
     internshipAgg.forEach((p) => { internshipMap[p._id.toString()] = p.total; });
 
+    const profiles = await require('../models/OnlineProfile').default.find({ studentId: { $in: studentIds } });
+    const profileMap: Record<string, any> = {};
+    profiles.forEach((p: any) => { profileMap[p.studentId.toString()] = { github: p.github, linkedin: p.linkedin, leetcode: p.leetcode, portfolio: p.portfolio, codechef: p.codechef }; });
+
     let data = students.map((s: any) => ({
       id: s._id,
       firstName: s.firstName,
@@ -128,6 +132,7 @@ export const getAssignedStudents = async (req: Request, res: Response) => {
       tasksCompleted: taskMap[s._id.toString()] || 0,
       certificationsCompleted: certMap[s._id.toString()] || 0,
       internshipsCompleted: internshipMap[s._id.toString()] || 0,
+      socials: profileMap[s._id.toString()] || null,
       lastActive: s.createdAt,
       status: s.status === 'Active' ? 'Active' : 'Inactive'
     }));
