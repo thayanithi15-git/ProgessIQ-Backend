@@ -6,9 +6,16 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "Loaded" : "Missing");
+
 // Create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // You can change this to any SMTP provider
+  // service: 'gmail', 
+  // You can change this to any SMTP provider
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER || 'progressiq.noreply@gmail.com', // Replace with real credentials in .env
     pass: process.env.EMAIL_PASS || 'password_here'
@@ -47,10 +54,18 @@ export const NotificationService = {
 
       // 2. Send email if requested
       if (params.sendEmail) {
+        console.log(`[NotificationService] Attempting to send email for notification '${params.title}' to userId: ${params.userId}`);
         const user = await User.findById(params.userId);
-        if (user && user.email) {
+
+        if (!user || !user.email) {
+          console.warn(`[NotificationService] Emal send skipped: User not found or has no email for userId: ${params.userId}`);
+        } else {
           const student = await Student.findOne({ userId: params.userId });
           const name = student ? `${student.firstName} ${student.lastName}` : 'Student';
+
+          if (!process.env.EMAIL_PASS || process.env.EMAIL_PASS === 'password_here') {
+            console.warn(`[NotificationService] WARNING: Using default/missing EMAIL_PASS in .env. Email to ${user.email} will likely fail auth.`);
+          }
 
           const mailOptions = {
             from: `"ProgressIQ" <${process.env.EMAIL_USER || 'noreply@progressiq.com'}>`,
@@ -79,16 +94,21 @@ export const NotificationService = {
             `
           };
 
-          // Send mail (we log error but don't fail the request if email fails)
-          transporter.sendMail(mailOptions).catch(err => {
-            console.error('Email send error:', err);
-          });
+          // Send mail and log response
+          console.log(`[NotificationService] Dispatching email to: ${user.email}...`);
+          transporter.sendMail(mailOptions)
+            .then((info) => {
+              console.log(`[NotificationService] SUCCESS: Email sent to ${user.email}. Message ID: ${info.messageId}`);
+            })
+            .catch(err => {
+              console.error(`[NotificationService] ERROR: Failed to send email to ${user.email}. Reason:`, err.message || err);
+            });
         }
       }
 
       return notification;
-    } catch (error) {
-      console.error('Error sending notification:', error);
+    } catch (error: any) {
+      console.error('[NotificationService] Fatal error sending notification:', error.message || error);
       throw error;
     }
   },

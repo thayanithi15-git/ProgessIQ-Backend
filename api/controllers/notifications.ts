@@ -7,11 +7,26 @@ export const listNotifications = async (req: Request, res: Response) => {
   res.json({ notifications });
 };
 
+import { NotificationService } from '../services/notificationService';
+
 export const createNotification = async (req: Request, res: Response) => {
-  const { userId, message, type = 'INFO' } = req.body;
-  const n = new Notification({ userId, message, type, read: false, createdAt: new Date() });
-  await n.save();
-  res.status(201).json({ n });
+  try {
+    const { userId, title, message, type = 'INFO', link, sendEmail = false } = req.body;
+    
+    const notification = await NotificationService.send({
+      userId,
+      title: title || 'New Notification', // Fallback title
+      message,
+      type,
+      link,
+      sendEmail
+    });
+    
+    res.status(201).json({ success: true, notification });
+  } catch (error: any) {
+    console.error('Error creating notification:', error);
+    res.status(500).json({ success: false, message: 'Failed to create notification', error: error.message });
+  }
 };
 
 export const markRead = async (req: Request, res: Response) => {
