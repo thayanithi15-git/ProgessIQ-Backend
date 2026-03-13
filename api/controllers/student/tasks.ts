@@ -64,7 +64,7 @@ export const listStudentTasks = async (req: Request, res: Response) => {
           source: 'TASK',
           sourceId: task._id
         });
-        const isOverdue = task.dueDate < new Date() && task.status !== 'COMPLETED';
+        const isOverdue = task.dueDate < new Date() && task.status !== 'APPROVED' && task.status !== 'SUBMITTED';
         return {
           ...task.toObject(),
           feedback: feedback?.message || null,
@@ -110,7 +110,7 @@ export const getTaskById = async (req: Request, res: Response) => {
       sourceId: id
     }).populate('mentorId', 'firstName lastName email');
 
-    const isOverdue = task.dueDate < new Date() && task.status !== 'COMPLETED';
+    const isOverdue = task.dueDate < new Date() && task.status !== 'APPROVED' && task.status !== 'SUBMITTED';
 
     const mentorId = feedback?.mentorId as any;
     res.json({
@@ -146,9 +146,9 @@ export const updateTask = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    // Allow update only if not completed
-    if (task.status === 'COMPLETED') {
-      return res.status(400).json({ success: false, message: 'Cannot update completed task' });
+    // Allow update only if not submitted/approved
+    if (['SUBMITTED', 'APPROVED'].includes(task.status)) {
+      return res.status(400).json({ success: false, message: 'Cannot update a submitted or approved task' });
     }
 
     const updated = await Task.findByIdAndUpdate(id, req.body, { new: true });
@@ -203,7 +203,7 @@ export const submitTaskUpdate = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
     const { id } = req.params;
-    const { completedAt } = req.body;
+    const { completedAt, submissionNote } = req.body;
 
     const task = await Task.findOne({ _id: id, studentId });
 
@@ -211,11 +211,16 @@ export const submitTaskUpdate = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
+    if (['APPROVED', 'SUBMITTED'].includes(task.status)) {
+      return res.status(400).json({ success: false, message: 'Task already submitted or approved' });
+    }
+
     const updated = await Task.findByIdAndUpdate(
       id,
       {
         status: 'SUBMITTED',
-        completedAt: completedAt || new Date()
+        completedAt: completedAt || new Date(),
+        submissionNote: submissionNote || ''
       },
       { new: true }
     );
@@ -227,6 +232,37 @@ export const submitTaskUpdate = async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error submitting task', error });
+  }
+};
+
+/**
+ * START TASK (mark In Progress)
+ * PUT /api/student/tasks/:id/start
+ */
+export const startTask = async (req: Request, res: Response) => {
+  try {
+    const studentId = (req as any).user.studentId;
+    const { id } = req.params;
+
+    const task = await Task.findOne({ _id: id, studentId });
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    if (task.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: 'Task can only be started when PENDING' });
+    }
+
+    const updated = await Task.findByIdAndUpdate(id, { status: 'IN_PROGRESS' }, { new: true });
+
+    res.json({
+      success: true,
+      message: 'Task started',
+      data: updated
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error starting task', error });
   }
 };
 

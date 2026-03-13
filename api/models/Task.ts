@@ -7,8 +7,20 @@ const taskSchema = new mongoose.Schema({
   description: { type: String, required: true },
   dueDate: { type: Date, required: true },
   completedAt: { type: Date },
-  status: { type: String, required: true }
-});
+  status: {
+    type: String,
+    required: true,
+    enum: ['PENDING', 'IN_PROGRESS', 'SUBMITTED', 'APPROVED', 'REJECTED'],
+    default: 'PENDING'
+  },
+  // Student's completion note submitted when they mark as done
+  submissionNote: { type: String },
+  // Mentor verification fields
+  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Mentor' },
+  verificationNote: { type: String },
+  pointsAwarded: { type: Number, default: 0 },
+  verifiedAt: { type: Date },
+}, { timestamps: true });
 
 const Task = mongoose.model('Task', taskSchema);
 

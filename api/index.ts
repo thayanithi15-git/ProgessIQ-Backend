@@ -112,9 +112,12 @@ app.use(errorHandler);
 
 // ================= START SERVER =================
 
+import { startCronJobs } from './services/cronService';
+
 // Only start listener in LOCAL — not in Vercel
 if (process.env.NODE_ENV !== "production") {
   connectDB().then(() => {
+    startCronJobs();
     app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
     });

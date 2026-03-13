@@ -16,7 +16,9 @@ export {
   getProjectById, 
   updateProject, 
   deleteProject, 
-  getProjectFeedback 
+  getProjectFeedback,
+  submitProjectUpdate,
+  startProject
 } from './projects';
 
 // Tasks
@@ -27,6 +29,7 @@ export {
   updateTask,
   deleteTask,
   submitTaskUpdate,
+  startTask,
   getTaskFeedback 
 } from './tasks';
 

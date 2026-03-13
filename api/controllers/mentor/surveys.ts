@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import Survey from '../../models/Survey';
 import SurveyResponse from '../../models/SurveyResponse';
 import Student from '../../models/Student';
+import MentorStudentMapping from '../../models/MentorStudentMapping';
+import { NotificationService } from '../../services/notificationService';
 
 export const createSurvey = async (req: Request, res: Response) => {
   try {
@@ -20,6 +22,25 @@ export const createSurvey = async (req: Request, res: Response) => {
       status: 'Active'
     });
     await survey.save();
+
+    // Notify all assigned students
+    const mappings = await MentorStudentMapping.find({ mentorId, isActive: true }).select('studentId');
+    if (mappings.length > 0) {
+      const studentIds = mappings.map((m: any) => m.studentId);
+      const studentsToNotify = await Student.find({ _id: { $in: studentIds } });
+      
+      for (const st of studentsToNotify) {
+        if (st.userId) {
+          await NotificationService.send({
+            userId: st.userId.toString(),
+            title: 'New Survey Available',
+            message: `A new survey "${title}" has been published by your mentor.`,
+            type: 'SURVEY',
+            sendEmail: true
+          });
+        }
+      }
+    }
 
     res.status(201).json({
       success: true,

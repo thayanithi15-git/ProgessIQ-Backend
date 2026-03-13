@@ -23,7 +23,8 @@ export const createProject = async (req: Request, res: Response) => {
       githubLink,
       websiteLink,
       completedAt: new Date(completedAt),
-      status: 'PENDING'
+      status: 'PENDING',
+      createdByMentor: false
     });
 
     await project.save();
@@ -48,7 +49,15 @@ export const listStudentProjects = async (req: Request, res: Response) => {
     const { status, limit = 20, skip = 0 } = req.query;
 
     const filter: any = { studentId };
-    if (status) filter.status = status;
+    
+    // Status mapping equivalent to front-end for students
+    if (status) {
+      if (status === 'ALL') {
+        // no filter
+      } else {
+        filter.status = status;
+      }
+    }
 
     const projects = await Project.find(filter)
       .populate('mentorId', 'firstName lastName department')
@@ -58,25 +67,10 @@ export const listStudentProjects = async (req: Request, res: Response) => {
 
     const total = await Project.countDocuments(filter);
 
-    // Get feedback for each project
-    const projectsWithFeedback = await Promise.all(
-      projects.map(async (project) => {
-        const feedback = await Feedback.findOne({
-          studentId,
-          source: 'PROJECT',
-          sourceId: project._id
-        });
-        return {
-          ...project.toObject(),
-          feedback: feedback?.message || null
-        };
-      })
-    );
-
     res.json({
       success: true,
       data: {
-        projects: projectsWithFeedback,
+        projects,
         pagination: {
           total,
           limit: parseInt(limit as string),
@@ -104,24 +98,9 @@ export const getProjectById = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    // Get feedback
-    const feedback = await Feedback.findOne({
-      studentId,
-      source: 'PROJECT',
-      sourceId: id
-    }).populate('mentorId', 'firstName lastName');
-
     res.json({
       success: true,
-      data: {
-        ...project.toObject(),
-        feedback: feedback ? {
-          id: feedback._id,
-          mentorName: `${(feedback.mentorId as any)?.firstName} ${(feedback.mentorId as any)?.lastName}`,
-          message: feedback.message,
-          createdAt: feedback.createdAt
-        } : null
-      }
+      data: project
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching project', error });
@@ -143,8 +122,8 @@ export const updateProject = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    // Allow update only if not approved or rejected
-    if (project.status === 'APPROVED' || project.status === 'REJECTED') {
+    // Allow update only if not approved or rejected or submitted
+    if (['APPROVED', 'REJECTED', 'SUBMITTED'].includes(project.status)) {
       return res.status(400).json({ success: false, message: 'Cannot update project with this status' });
     }
 
@@ -179,9 +158,13 @@ export const deleteProject = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    // Allow delete only if pending
+    // Allow delete only if pending and not mentor created
     if (project.status !== 'PENDING') {
-      return res.status(400).json({ success: false, message: 'Cannot delete project with this status' });
+      return res.status(400).json({ success: false, message: 'Cannot delete project after it has been worked on' });
+    }
+
+    if (project.createdByMentor) {
+      return res.status(403).json({ success: false, message: 'Cannot delete a project assigned by a mentor' });
     }
 
     await Project.findByIdAndDelete(id);
@@ -197,7 +180,80 @@ export const deleteProject = async (req: Request, res: Response) => {
 };
 
 /**
- * GET PROJECT FEEDBACK/REJECTION REASON
+ * SUBMIT PROJECT UPDATE
+ * PUT /api/student/projects/:id/complete
+ */
+export const submitProjectUpdate = async (req: Request, res: Response) => {
+  try {
+    const studentId = (req as any).user.studentId;
+    const { id } = req.params;
+    const { completedAt, submissionNote, githubLink, websiteLink } = req.body;
+
+    const project = await Project.findOne({ _id: id, studentId });
+
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    if (['APPROVED', 'SUBMITTED'].includes(project.status)) {
+      return res.status(400).json({ success: false, message: 'Project already submitted or approved' });
+    }
+
+    const updated = await Project.findByIdAndUpdate(
+      id,
+      {
+        status: 'SUBMITTED',
+        completedAt: completedAt || new Date(),
+        submissionNote: submissionNote || project.submissionNote || '',
+        githubLink: githubLink !== undefined ? githubLink : project.githubLink,
+        websiteLink: websiteLink !== undefined ? websiteLink : project.websiteLink,
+      },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Project submitted for review',
+      data: updated
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error submitting project', error });
+  }
+};
+
+/**
+ * START PROJECT (mark In Progress)
+ * PUT /api/student/projects/:id/start
+ */
+export const startProject = async (req: Request, res: Response) => {
+  try {
+    const studentId = (req as any).user.studentId;
+    const { id } = req.params;
+
+    const project = await Project.findOne({ _id: id, studentId });
+
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    if (project.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: 'Project can only be started when PENDING' });
+    }
+
+    const updated = await Project.findByIdAndUpdate(id, { status: 'IN_PROGRESS' }, { new: true });
+
+    res.json({
+      success: true,
+      message: 'Project started',
+      data: updated
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error starting project', error });
+  }
+};
+
+/**
+ * GET PROJECT FEEDBACK/REJECTION REASON (Legacy/Compatibility)
  * GET /api/student/projects/:id/feedback
  */
 export const getProjectFeedback = async (req: Request, res: Response) => {
