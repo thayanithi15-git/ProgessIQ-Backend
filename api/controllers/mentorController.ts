@@ -73,6 +73,11 @@ export const getAssignedStudents = async (req: Request, res: Response) => {
     if (academicYear) filter.academicYear = academicYear;
     if (place) filter.place = { $regex: String(place), $options: 'i' };
     if (status) filter.status = status;
+    if (req.query.rollNo) filter.rollNo = { $regex: req.query.rollNo, $options: 'i' };
+    if (req.query.familyIncome) filter.familyIncome = { $regex: req.query.familyIncome, $options: 'i' };
+    if (req.query.minCgpa) filter.cgpa = { $gte: parseFloat(req.query.minCgpa as string) };
+    if (req.query.maxArrears) filter.arrearCount = { $lte: parseInt(req.query.maxArrears as string) };
+    if (req.query.goodAt) filter.goodAt = { $in: (req.query.goodAt as string).split(',').map(s => s.trim()) };
     if (search) {
       filter.$or = [
         { firstName: { $regex: search, $options: 'i' } },

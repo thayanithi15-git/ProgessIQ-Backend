@@ -40,6 +40,11 @@ export const getStudents = async (req: Request, res: Response) => {
   if (department) filter.department = department;
   if (year) filter.year = year;
   if (status) filter.status = status;
+  if (req.query.rollNo) filter.rollNo = { $regex: req.query.rollNo, $options: 'i' };
+  if (req.query.familyIncome) filter.familyIncome = { $regex: req.query.familyIncome, $options: 'i' };
+  if (req.query.minCgpa) filter.cgpa = { $gte: parseFloat(req.query.minCgpa as string) };
+  if (req.query.maxArrears) filter.arrearCount = { $lte: parseInt(req.query.maxArrears as string) };
+  if (req.query.goodAt) filter.goodAt = { $in: (req.query.goodAt as string).split(',').map(s => s.trim()) };
 
   // ----- Name search -----
   if (name) {
@@ -65,6 +70,15 @@ export const getStudents = async (req: Request, res: Response) => {
   const total = await Student.countDocuments(filter);
 
   const studentIds = students.map((s) => s._id);
+
+  // Grouped points for real-time accuracy
+  const pointsAgg = await require('../models/Point').default.aggregate([
+    { $match: { studentId: { $in: studentIds } } },
+    { $group: { _id: '$studentId', points: { $sum: '$points' } } }
+  ]);
+  const pointsMap: Record<string, number> = {};
+  pointsAgg.forEach((p: any) => { pointsMap[p._id.toString()] = p.points; });
+
   const profiles = await require('../models/OnlineProfile').default.find({ studentId: { $in: studentIds } });
   const profileMap: Record<string, any> = {};
   profiles.forEach((p: any) => { profileMap[p.studentId.toString()] = { github: p.github, linkedin: p.linkedin, leetcode: p.leetcode, portfolio: p.portfolio, codechef: p.codechef }; });
@@ -73,6 +87,7 @@ export const getStudents = async (req: Request, res: Response) => {
     const studentData = s.toJSON ? s.toJSON() : s;
     return {
       ...studentData,
+      rewardPoints: pointsMap[s._id.toString()] || 0,
       socials: profileMap[s._id.toString()] || null
     };
   });

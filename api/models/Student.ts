@@ -21,7 +21,7 @@ const studentSchema = new mongoose.Schema({
   rewardPoints: { type: Number, default: 0 },
   status: { type: String, default: 'Active' },
   createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
 const Student = mongoose.model('Student', studentSchema);
 

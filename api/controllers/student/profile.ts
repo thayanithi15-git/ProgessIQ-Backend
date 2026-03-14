@@ -2,10 +2,11 @@ import Student from '../../models/Student';
 import Mentor from '../../models/Mentor';
 import MentorStudentMapping from '../../models/MentorStudentMapping';
 import OnlineProfile from '../../models/OnlineProfile';
+import Point from '../../models/Point';
 import { Request, Response } from 'express';
 
 /**
- * GET COMPLETE PROFILE
+ * GET DASHBOARD PROFILE
  * GET /api/student/profile
  */
 export const getProfile = async (req: Request, res: Response) => {
@@ -25,13 +26,22 @@ export const getProfile = async (req: Request, res: Response) => {
     const mapping = await MentorStudentMapping.findOne({ studentId, isActive: true }).populate('mentorId');
     const mentor = mapping?.mentorId as any;
 
+    // Get points for sync
+    const pointsData = await Point.find({ studentId });
+    const calculatedPoints = pointsData.reduce((sum: number, p: any) => sum + p.points, 0);
+
+    if (student.rewardPoints !== calculatedPoints) {
+      await Student.findByIdAndUpdate(studentId, { rewardPoints: calculatedPoints });
+      student.rewardPoints = calculatedPoints;
+    }
+
     res.json({
       success: true,
       data: {
         id: student._id,
         firstName: student.firstName,
         lastName: student.lastName,
-        email: student.userId?.email,
+        email: (student.userId as any)?.email,
         gender: student.gender,
         dob: student.dob,
         phone: student.phone,
@@ -41,6 +51,11 @@ export const getProfile = async (req: Request, res: Response) => {
         department: student.department,
         year: student.year,
         academicYear: student.academicYear,
+        rollNo: student.rollNo,
+        cgpa: student.cgpa,
+        arrearCount: student.arrearCount,
+        familyIncome: student.familyIncome,
+        goodAt: student.goodAt,
         status: student.status,
         rewardPoints: student.rewardPoints,
         createdAt: student.createdAt,
@@ -115,6 +130,15 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
     const mapping = await MentorStudentMapping.findOne({ studentId, isActive: true }).populate('mentorId');
     const mentor = mapping?.mentorId as any;
 
+    // Get points for sync
+    const pointsData = await Point.find({ studentId });
+    const calculatedPoints = pointsData.reduce((sum: number, p: any) => sum + p.points, 0);
+
+    if (student.rewardPoints !== calculatedPoints) {
+      await Student.findByIdAndUpdate(studentId, { rewardPoints: calculatedPoints });
+      student.rewardPoints = calculatedPoints;
+    }
+
     res.json({
       success: true,
       data: {
@@ -123,25 +147,31 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
           id: student._id,
           firstName: student.firstName,
           lastName: student.lastName,
-          email: student.userId?.email,
+          email: (student.userId as any)?.email,
           gender: student.gender,
           dob: student.dob,
           phone: student.phone,
           place: student.place,
-          status: student.status
+          status: student.status,
+          rollNo: student.rollNo,
+          rewardPoints: student.rewardPoints
         },
 
         // Family Information
         familyInfo: {
           parentName: student.parentName,
-          parentPhone: student.parentPhone
+          parentPhone: student.parentPhone,
+          familyIncome: student.familyIncome
         },
 
         // Academic Information
         academicInfo: {
           department: student.department,
           year: student.year,
-          academicYear: student.academicYear
+          academicYear: student.academicYear,
+          cgpa: student.cgpa,
+          arrearCount: student.arrearCount,
+          goodAt: student.goodAt
         },
 
         // Achievement Information
@@ -163,7 +193,7 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
         // Account Information
         accountInfo: {
           createdAt: student.createdAt,
-          lastUpdated: student.createdAt
+          lastUpdated: (student as any).updatedAt || student.createdAt
         }
       }
     });
@@ -176,10 +206,9 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
  * GET SOCIAL LINKS
  * GET /api/student/profile/socials
  */
-export const getSocialLinks = async (req: import('express').Request, res: import('express').Response) => {
+export const getSocialLinks = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
-    const OnlineProfile = require('../../models/OnlineProfile').default;
     let profile = await OnlineProfile.findOne({ studentId });
     if (!profile) return res.json({ success: true, data: null });
     res.json({ success: true, data: profile });
@@ -192,11 +221,10 @@ export const getSocialLinks = async (req: import('express').Request, res: import
  * UPDATE SOCIAL LINKS
  * POST /api/student/profile/socials
  */
-export const updateSocialLinks = async (req: import('express').Request, res: import('express').Response) => {
+export const updateSocialLinks = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
     const { github, linkedin, leetcode, portfolio, codechef } = req.body;
-    const OnlineProfile = require('../../models/OnlineProfile').default;
     let profile = await OnlineProfile.findOne({ studentId });
     if (profile) {
       if (github !== undefined) profile.github = github;
