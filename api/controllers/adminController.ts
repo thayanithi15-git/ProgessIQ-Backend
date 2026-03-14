@@ -173,3 +173,43 @@ export const mapStudentsToMentor = async (req: Request, res: Response) => {
   await MentorStudentMapping.insertMany(mappings);
   res.json({ message: 'Mapped', count: mappings.length });
 };
+
+export const bulkUploadStudents = async (req: Request, res: Response) => {
+  try {
+    const { students } = req.body; // Array of student objects from frontend
+    if (!Array.isArray(students)) return res.status(400).json({ message: 'Invalid payload' });
+
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as any[]
+    };
+
+    for (const data of students) {
+      try {
+        const password = data.password || 'ChangeMe123!';
+        const existing = await User.findOne({ email: data.email });
+        if (existing) {
+          results.failed++;
+          results.errors.push({ email: data.email, error: 'Email already exists' });
+          continue;
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const user = new User({ role: 'STUDENT', email: data.email, passwordHash });
+        await user.save();
+
+        const student = new Student({ ...data, userId: user._id });
+        await student.save();
+        results.success++;
+      } catch (err: any) {
+        results.failed++;
+        results.errors.push({ email: data.email, error: err.message });
+      }
+    }
+
+    res.status(200).json({ message: 'Bulk upload completed', results });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};

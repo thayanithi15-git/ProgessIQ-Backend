@@ -1,4 +1,4 @@
-export { createStudent, getStudents, updateStudent, deleteStudent, createMentor, getMentors, updateMentor, deleteMentor, mapStudentsToMentor, getStudentById, getMentorById } from '../adminController';
+export { createStudent, getStudents, updateStudent, deleteStudent, createMentor, getMentors, updateMentor, deleteMentor, mapStudentsToMentor, getStudentById, getMentorById, bulkUploadStudents } from '../adminController';
 export { getAdminStats, getTopStudents, getActivityChart, getPointsTrendChart, getMonthlySubmissions, getDepartmentDistribution, getYearDistribution, getProjectStatusChart, getInternshipTypesChart, getPointsBySource } from './dashboard';
 export { listUsers, viewUser, createStudentUser, updateUser, deleteUser, createAdminUser } from './users';
 export { listProjects, viewProject } from './projects';
