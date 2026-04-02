@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const adminController = __importStar(require("../controllers/admin"));
+const systemLogController = __importStar(require("../controllers/systemLogController"));
 const roles_1 = require("../middleware/roles");
 const router = (0, express_1.Router)();
 // All admin endpoints require admin role
@@ -65,6 +66,7 @@ router.get('/students', adminController.getStudents);
 router.get('/students/:id', adminController.getStudentById);
 router.put('/students/:id', adminController.updateStudent);
 router.delete('/students/:id', adminController.deleteStudent);
+router.post('/students/bulk', adminController.bulkUploadStudents);
 // Mentors
 router.post('/mentors', adminController.createMentor);
 router.get('/mentors', adminController.getMentors);
@@ -79,19 +81,18 @@ router.get('/certifications', adminController.listCertifications);
 router.get('/tasks', adminController.listTasks);
 // Logs
 router.get('/logs', adminController.listLogs);
+// System Logs
+router.get('/system-logs', systemLogController.getSystemLogs);
 // Reports
 router.post('/reports', adminController.generateReport);
 router.post('/reports/preview', adminController.previewReport);
-router.get('/reports/history', adminController.getReportHistory);
-router.get('/reports/download/:reportId', adminController.downloadReport);
-router.delete('/reports/:reportId', adminController.deleteReport);
 // Report Options
 router.get('/options/departments', adminController.getDepartments);
 router.get('/options/years', adminController.getYears);
 router.get('/options/mentors', adminController.getMentors);
 router.get('/options/platforms', adminController.getPlatforms);
-// Report Statistics
-router.get('/reports/stats', adminController.getReportStats);
+// Report Statistics (Removed)
+// router.get('/reports/stats', adminController.getReportStats);
 // Mentor-Student mapping
 router.post('/mappings', adminController.mapStudentsToMentor);
 exports.default = router;

@@ -53,12 +53,15 @@ router.get('/projects/:id', studentController.getProjectById);
 router.put('/projects/:id', studentController.updateProject);
 router.delete('/projects/:id', studentController.deleteProject);
 router.get('/projects/:id/feedback', studentController.getProjectFeedback);
+router.put('/projects/:id/start', studentController.startProject);
+router.put('/projects/:id/complete', studentController.submitProjectUpdate);
 // ========== TASKS ==========
 router.post('/tasks', studentController.createTask);
 router.get('/tasks', studentController.listStudentTasks);
 router.get('/tasks/:id', studentController.getTaskById);
 router.put('/tasks/:id', studentController.updateTask);
 router.delete('/tasks/:id', studentController.deleteTask);
+router.put('/tasks/:id/start', studentController.startTask);
 router.put('/tasks/:id/complete', studentController.submitTaskUpdate);
 router.get('/tasks/:id/feedback', studentController.getTaskFeedback);
 // ========== CERTIFICATIONS ==========
@@ -85,6 +88,8 @@ router.put('/surveys/:id/respond', studentController.updateSurveyResponse);
 router.get('/profile', studentController.getProfile);
 router.put('/profile', studentController.updateProfile);
 router.get('/profile/complete', studentController.getCompleteProfile);
+router.get('/profile/socials', studentController.getSocialLinks);
+router.post('/profile/socials', studentController.updateSocialLinks);
 // ========== RANKINGS ==========
 router.get('/rankings', studentController.getAllRankings);
 router.get('/rankings/position', studentController.getStudentRanking);

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listTasks = exports.listCertifications = exports.getReportStats = exports.getPlatforms = exports.getMentorsReport = exports.getYears = exports.getDepartments = exports.deleteReport = exports.downloadReport = exports.getReportHistory = exports.previewReport = exports.generateReport = exports.listLogs = exports.viewProject = exports.listProjects = exports.createAdminUser = exports.deleteUser = exports.updateUser = exports.createStudentUser = exports.viewUser = exports.listUsers = exports.getPointsBySource = exports.getInternshipTypesChart = exports.getProjectStatusChart = exports.getYearDistribution = exports.getDepartmentDistribution = exports.getMonthlySubmissions = exports.getPointsTrendChart = exports.getActivityChart = exports.getTopStudents = exports.getAdminStats = exports.getMentorById = exports.getStudentById = exports.mapStudentsToMentor = exports.deleteMentor = exports.updateMentor = exports.getMentors = exports.createMentor = exports.deleteStudent = exports.updateStudent = exports.getStudents = exports.createStudent = void 0;
+exports.listTasks = exports.listCertifications = exports.getPlatforms = exports.getMentorsReport = exports.getYears = exports.getDepartments = exports.previewReport = exports.generateReport = exports.listLogs = exports.viewProject = exports.listProjects = exports.createAdminUser = exports.deleteUser = exports.updateUser = exports.createStudentUser = exports.viewUser = exports.listUsers = exports.getPointsBySource = exports.getInternshipTypesChart = exports.getProjectStatusChart = exports.getYearDistribution = exports.getDepartmentDistribution = exports.getMonthlySubmissions = exports.getPointsTrendChart = exports.getActivityChart = exports.getTopStudents = exports.getAdminStats = exports.bulkUploadStudents = exports.getMentorById = exports.getStudentById = exports.mapStudentsToMentor = exports.deleteMentor = exports.updateMentor = exports.getMentors = exports.createMentor = exports.deleteStudent = exports.updateStudent = exports.getStudents = exports.createStudent = void 0;
 var adminController_1 = require("../adminController");
 Object.defineProperty(exports, "createStudent", { enumerable: true, get: function () { return adminController_1.createStudent; } });
 Object.defineProperty(exports, "getStudents", { enumerable: true, get: function () { return adminController_1.getStudents; } });
@@ -13,6 +13,7 @@ Object.defineProperty(exports, "deleteMentor", { enumerable: true, get: function
 Object.defineProperty(exports, "mapStudentsToMentor", { enumerable: true, get: function () { return adminController_1.mapStudentsToMentor; } });
 Object.defineProperty(exports, "getStudentById", { enumerable: true, get: function () { return adminController_1.getStudentById; } });
 Object.defineProperty(exports, "getMentorById", { enumerable: true, get: function () { return adminController_1.getMentorById; } });
+Object.defineProperty(exports, "bulkUploadStudents", { enumerable: true, get: function () { return adminController_1.bulkUploadStudents; } });
 var dashboard_1 = require("./dashboard");
 Object.defineProperty(exports, "getAdminStats", { enumerable: true, get: function () { return dashboard_1.getAdminStats; } });
 Object.defineProperty(exports, "getTopStudents", { enumerable: true, get: function () { return dashboard_1.getTopStudents; } });
@@ -39,14 +40,10 @@ Object.defineProperty(exports, "listLogs", { enumerable: true, get: function () 
 var reports_1 = require("./reports");
 Object.defineProperty(exports, "generateReport", { enumerable: true, get: function () { return reports_1.generateReport; } });
 Object.defineProperty(exports, "previewReport", { enumerable: true, get: function () { return reports_1.previewReport; } });
-Object.defineProperty(exports, "getReportHistory", { enumerable: true, get: function () { return reports_1.getReportHistory; } });
-Object.defineProperty(exports, "downloadReport", { enumerable: true, get: function () { return reports_1.downloadReport; } });
-Object.defineProperty(exports, "deleteReport", { enumerable: true, get: function () { return reports_1.deleteReport; } });
 Object.defineProperty(exports, "getDepartments", { enumerable: true, get: function () { return reports_1.getDepartments; } });
 Object.defineProperty(exports, "getYears", { enumerable: true, get: function () { return reports_1.getYears; } });
 Object.defineProperty(exports, "getMentorsReport", { enumerable: true, get: function () { return reports_1.getMentorsReport; } });
 Object.defineProperty(exports, "getPlatforms", { enumerable: true, get: function () { return reports_1.getPlatforms; } });
-Object.defineProperty(exports, "getReportStats", { enumerable: true, get: function () { return reports_1.getReportStats; } });
 var certifications_1 = require("./certifications");
 Object.defineProperty(exports, "listCertifications", { enumerable: true, get: function () { return certifications_1.listCertifications; } });
 var tasks_1 = require("./tasks");

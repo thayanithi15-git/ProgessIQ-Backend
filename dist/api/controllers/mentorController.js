@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.awardPoints = exports.giveFeedback = exports.approveEntity = exports.getAssignedStudentProfile = exports.getAssignedStudents = void 0;
+exports.awardPoints = exports.giveFeedback = exports.approveEntity = exports.getAssignedStudentProfile = exports.getAssignedStudents = exports.getMentorProfile = void 0;
 const MentorStudentMapping_1 = __importDefault(require("../models/MentorStudentMapping"));
 const Student_1 = __importDefault(require("../models/Student"));
 const Approval_1 = __importDefault(require("../models/Approval"));
@@ -14,7 +14,36 @@ const Project_1 = __importDefault(require("../models/Project"));
 const Task_1 = __importDefault(require("../models/Task"));
 const Certification_1 = __importDefault(require("../models/Certification"));
 const Internship_1 = __importDefault(require("../models/Internship"));
+const Mentor_1 = __importDefault(require("../models/Mentor"));
 const getMentorId = (req) => req.user.mentorId || req.user.id;
+const getMentorProfile = async (req, res) => {
+    try {
+        const mentorId = req.user.mentorId;
+        const email = req.user.email;
+        const mentor = mentorId
+            ? await Mentor_1.default.findById(mentorId)
+            : await Mentor_1.default.findOne({ email });
+        if (!mentor) {
+            return res.status(404).json({ success: false, message: 'Mentor profile not found' });
+        }
+        res.json({
+            success: true,
+            data: {
+                id: mentor._id,
+                name: mentor.name,
+                email: mentor.email,
+                department: mentor.department,
+                designation: mentor.designation,
+                contactNo: mentor.contactNo,
+                place: mentor.place,
+            }
+        });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to fetch mentor profile', error: error.message });
+    }
+};
+exports.getMentorProfile = getMentorProfile;
 const getAssignedStudents = async (req, res) => {
     try {
         const mentorId = getMentorId(req);
@@ -35,6 +64,16 @@ const getAssignedStudents = async (req, res) => {
             filter.place = { $regex: String(place), $options: 'i' };
         if (status)
             filter.status = status;
+        if (req.query.rollNo)
+            filter.rollNo = { $regex: req.query.rollNo, $options: 'i' };
+        if (req.query.familyIncome)
+            filter.familyIncome = { $regex: req.query.familyIncome, $options: 'i' };
+        if (req.query.minCgpa)
+            filter.cgpa = { $gte: parseFloat(req.query.minCgpa) };
+        if (req.query.maxArrears)
+            filter.arrearCount = { $lte: parseInt(req.query.maxArrears) };
+        if (req.query.goodAt)
+            filter.goodAt = { $in: req.query.goodAt.split(',').map(s => s.trim()) };
         if (search) {
             filter.$or = [
                 { firstName: { $regex: search, $options: 'i' } },
@@ -72,6 +111,9 @@ const getAssignedStudents = async (req, res) => {
         taskAgg.forEach((p) => { taskMap[p._id.toString()] = p.total; });
         certAgg.forEach((p) => { certMap[p._id.toString()] = p.total; });
         internshipAgg.forEach((p) => { internshipMap[p._id.toString()] = p.total; });
+        const profiles = await require('../models/OnlineProfile').default.find({ studentId: { $in: studentIds } });
+        const profileMap = {};
+        profiles.forEach((p) => { profileMap[p.studentId.toString()] = { github: p.github, linkedin: p.linkedin, leetcode: p.leetcode, portfolio: p.portfolio, codechef: p.codechef }; });
         let data = students.map((s) => ({
             id: s._id,
             firstName: s.firstName,
@@ -87,6 +129,7 @@ const getAssignedStudents = async (req, res) => {
             tasksCompleted: taskMap[s._id.toString()] || 0,
             certificationsCompleted: certMap[s._id.toString()] || 0,
             internshipsCompleted: internshipMap[s._id.toString()] || 0,
+            socials: profileMap[s._id.toString()] || null,
             lastActive: s.createdAt,
             status: s.status === 'Active' ? 'Active' : 'Inactive'
         }));

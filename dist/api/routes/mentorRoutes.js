@@ -38,6 +38,7 @@ const mentorController = __importStar(require("../controllers/mentor"));
 const roles_1 = require("../middleware/roles");
 const router = (0, express_1.Router)();
 router.use(roles_1.requireMentor);
+router.get('/profile', mentorController.getMentorProfile);
 router.get('/stats', mentorController.getMentorStats);
 router.get('/assigned-students', mentorController.getAssignedStudents);
 router.get('/assigned-students/:id/profile', mentorController.getAssignedStudentProfile);
@@ -53,13 +54,25 @@ router.post('/points', mentorController.awardPoints);
 router.post('/surveys', mentorController.createSurvey);
 router.get('/surveys', mentorController.listSurveys);
 router.get('/surveys/:id/responses', mentorController.getSurveyResponses);
+router.post('/notify', mentorController.notifyStudents);
+// ========== PROJECTS ==========
 router.get('/projects', mentorController.listMentorProjects);
+router.post('/projects', mentorController.createMentorProject);
 router.get('/projects/:id', mentorController.getMentorProjectById);
+router.put('/projects/:id', mentorController.updateMentorProject);
+router.delete('/projects/:id', mentorController.deleteMentorProject);
+router.put('/projects/:id/verify', mentorController.verifyMentorProject);
+// ========== TASKS ==========
 router.get('/tasks', mentorController.listMentorTasks);
-router.get('/tasks/:id', mentorController.getMentorTaskById);
 router.post('/tasks/assign', mentorController.createMentorTask);
+router.get('/tasks/:id', mentorController.getMentorTaskById);
+router.put('/tasks/:id', mentorController.updateMentorTask);
+router.delete('/tasks/:id', mentorController.deleteMentorTask);
+router.put('/tasks/:id/verify', mentorController.verifyMentorTask);
+// ========== CERTIFICATIONS ==========
 router.get('/certifications', mentorController.listMentorCertifications);
 router.get('/certifications/:id', mentorController.getMentorCertificationById);
+// ========== INTERNSHIPS ==========
 router.get('/internships', mentorController.listMentorInternships);
 router.get('/internships/:id', mentorController.getMentorInternshipById);
 exports.default = router;

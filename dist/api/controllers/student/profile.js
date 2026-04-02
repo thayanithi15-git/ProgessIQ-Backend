@@ -3,11 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCompleteProfile = exports.updateProfile = exports.getProfile = void 0;
+exports.updateSocialLinks = exports.getSocialLinks = exports.getCompleteProfile = exports.updateProfile = exports.getProfile = void 0;
 const Student_1 = __importDefault(require("../../models/Student"));
-const Mentor_1 = __importDefault(require("../../models/Mentor"));
+const MentorStudentMapping_1 = __importDefault(require("../../models/MentorStudentMapping"));
+const OnlineProfile_1 = __importDefault(require("../../models/OnlineProfile"));
+const Point_1 = __importDefault(require("../../models/Point"));
 /**
- * GET COMPLETE PROFILE
+ * GET DASHBOARD PROFILE
  * GET /api/student/profile
  */
 const getProfile = async (req, res) => {
@@ -20,11 +22,16 @@ const getProfile = async (req, res) => {
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
-        // Get mentor info
-        const mentor = await Mentor_1.default.findOne({ studentId }).populate({
-            path: 'userId',
-            select: 'email firstName lastName'
-        });
+        // Get mentor info via mapping
+        const mapping = await MentorStudentMapping_1.default.findOne({ studentId, isActive: true }).populate('mentorId');
+        const mentor = mapping?.mentorId;
+        // Get points for sync
+        const pointsData = await Point_1.default.find({ studentId });
+        const calculatedPoints = pointsData.reduce((sum, p) => sum + p.points, 0);
+        if (student.rewardPoints !== calculatedPoints) {
+            await Student_1.default.findByIdAndUpdate(studentId, { rewardPoints: calculatedPoints });
+            student.rewardPoints = calculatedPoints;
+        }
         res.json({
             success: true,
             data: {
@@ -41,16 +48,21 @@ const getProfile = async (req, res) => {
                 department: student.department,
                 year: student.year,
                 academicYear: student.academicYear,
+                rollNo: student.rollNo,
+                cgpa: student.cgpa,
+                arrearCount: student.arrearCount,
+                familyIncome: student.familyIncome,
+                goodAt: student.goodAt,
                 status: student.status,
                 rewardPoints: student.rewardPoints,
                 createdAt: student.createdAt,
                 mentor: mentor ? {
                     id: mentor._id,
-                    name: `${mentor.userId?.firstName || ''} ${mentor.userId?.lastName || ''}`,
-                    email: mentor.userId?.email,
+                    name: mentor.name,
+                    email: mentor.email,
                     department: mentor.department,
-                    expertise: mentor.expertise,
-                    phone: mentor.phone
+                    expertise: mentor.expertise || [],
+                    phone: mentor.contactNo || null
                 } : null
             }
         });
@@ -105,11 +117,16 @@ const getCompleteProfile = async (req, res) => {
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
-        // Get mentor with all details
-        const mentor = await Mentor_1.default.findOne({ studentId }).populate({
-            path: 'userId',
-            select: 'email firstName lastName'
-        });
+        // Get mentor with all details via mapping
+        const mapping = await MentorStudentMapping_1.default.findOne({ studentId, isActive: true }).populate('mentorId');
+        const mentor = mapping?.mentorId;
+        // Get points for sync
+        const pointsData = await Point_1.default.find({ studentId });
+        const calculatedPoints = pointsData.reduce((sum, p) => sum + p.points, 0);
+        if (student.rewardPoints !== calculatedPoints) {
+            await Student_1.default.findByIdAndUpdate(studentId, { rewardPoints: calculatedPoints });
+            student.rewardPoints = calculatedPoints;
+        }
         res.json({
             success: true,
             data: {
@@ -123,18 +140,24 @@ const getCompleteProfile = async (req, res) => {
                     dob: student.dob,
                     phone: student.phone,
                     place: student.place,
-                    status: student.status
+                    status: student.status,
+                    rollNo: student.rollNo,
+                    rewardPoints: student.rewardPoints
                 },
                 // Family Information
                 familyInfo: {
                     parentName: student.parentName,
-                    parentPhone: student.parentPhone
+                    parentPhone: student.parentPhone,
+                    familyIncome: student.familyIncome
                 },
                 // Academic Information
                 academicInfo: {
                     department: student.department,
                     year: student.year,
-                    academicYear: student.academicYear
+                    academicYear: student.academicYear,
+                    cgpa: student.cgpa,
+                    arrearCount: student.arrearCount,
+                    goodAt: student.goodAt
                 },
                 // Achievement Information
                 achievementInfo: {
@@ -143,17 +166,17 @@ const getCompleteProfile = async (req, res) => {
                 // Mentor Information
                 mentorInfo: mentor ? {
                     id: mentor._id,
-                    fullName: `${mentor.userId?.firstName || ''} ${mentor.userId?.lastName || ''}`,
-                    email: mentor.userId?.email,
+                    name: mentor.name,
+                    email: mentor.email,
                     department: mentor.department,
                     expertise: mentor.expertise || [],
-                    phone: mentor.phone || null,
-                    experience: mentor.experience || null
+                    phone: mentor.contactNo || null,
+                    experience: mentor.experience || mentor.designation || null
                 } : null,
                 // Account Information
                 accountInfo: {
                     createdAt: student.createdAt,
-                    lastUpdated: student.createdAt
+                    lastUpdated: student.updatedAt || student.createdAt
                 }
             }
         });
@@ -163,3 +186,53 @@ const getCompleteProfile = async (req, res) => {
     }
 };
 exports.getCompleteProfile = getCompleteProfile;
+/**
+ * GET SOCIAL LINKS
+ * GET /api/student/profile/socials
+ */
+const getSocialLinks = async (req, res) => {
+    try {
+        const studentId = req.user.studentId;
+        let profile = await OnlineProfile_1.default.findOne({ studentId });
+        if (!profile)
+            return res.json({ success: true, data: null });
+        res.json({ success: true, data: profile });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching social links', error });
+    }
+};
+exports.getSocialLinks = getSocialLinks;
+/**
+ * UPDATE SOCIAL LINKS
+ * POST /api/student/profile/socials
+ */
+const updateSocialLinks = async (req, res) => {
+    try {
+        const studentId = req.user.studentId;
+        const { github, linkedin, leetcode, portfolio, codechef } = req.body;
+        let profile = await OnlineProfile_1.default.findOne({ studentId });
+        if (profile) {
+            if (github !== undefined)
+                profile.github = github;
+            if (linkedin !== undefined)
+                profile.linkedin = linkedin;
+            if (leetcode !== undefined)
+                profile.leetcode = leetcode;
+            if (portfolio !== undefined)
+                profile.portfolio = portfolio;
+            if (codechef !== undefined)
+                profile.codechef = codechef;
+            await profile.save();
+        }
+        else {
+            profile = new OnlineProfile_1.default({ studentId, github, linkedin, leetcode, portfolio, codechef });
+            await profile.save();
+        }
+        res.json({ success: true, message: 'Social links updated', data: profile });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error updating social links', error });
+    }
+};
+exports.updateSocialLinks = updateSocialLinks;

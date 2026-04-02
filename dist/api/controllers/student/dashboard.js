@@ -47,9 +47,9 @@ const getStudentDashboard = async (req, res) => {
         const tasks = await Task_1.default.find({ studentId });
         const taskStats = {
             total: tasks.length,
-            completed: tasks.filter(t => t.status === 'COMPLETED').length,
+            completed: tasks.filter(t => t.status === 'APPROVED').length,
             pending: tasks.filter(t => t.status === 'PENDING').length,
-            overdue: tasks.filter(t => t.dueDate < new Date() && t.status !== 'COMPLETED').length
+            overdue: tasks.filter(t => t.dueDate < new Date() && t.status !== 'APPROVED').length
         };
         // Get certifications stats
         const certifications = await Certification_1.default.find({ studentId });
@@ -69,7 +69,13 @@ const getStudentDashboard = async (req, res) => {
         };
         // Get points and activity
         const pointsData = await Point_1.default.find({ studentId }).sort({ awardedOn: -1 });
-        const totalPoints = pointsData.reduce((sum, p) => sum + p.points, 0);
+        const calculatedPoints = pointsData.reduce((sum, p) => sum + p.points, 0);
+        // Sync rewardPoints if discrepant
+        if (student.rewardPoints !== calculatedPoints) {
+            await Student_1.default.findByIdAndUpdate(studentId, { rewardPoints: calculatedPoints });
+            student.rewardPoints = calculatedPoints;
+        }
+        const totalPoints = student.rewardPoints;
         // Get ranking
         const ranking = await Ranking_1.default.findOne({ studentId });
         // Get points heatmap data for current year
@@ -340,9 +346,9 @@ const getTaskCompletionChart = async (req, res) => {
     try {
         const studentId = req.user.studentId;
         const tasks = await Task_1.default.find({ studentId }).select('status dueDate');
-        const completed = tasks.filter(t => t.status === 'COMPLETED').length;
+        const completed = tasks.filter(t => t.status === 'APPROVED').length;
         const pending = tasks.filter(t => t.status === 'PENDING').length;
-        const overdue = tasks.filter(t => t.status !== 'COMPLETED' && t.dueDate < new Date()).length;
+        const overdue = tasks.filter(t => t.status !== 'APPROVED' && t.dueDate < new Date()).length;
         res.json({
             success: true,
             data: [

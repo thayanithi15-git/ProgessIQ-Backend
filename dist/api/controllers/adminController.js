@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mapStudentsToMentor = exports.deleteMentor = exports.updateMentor = exports.getMentorById = exports.getMentors = exports.createMentor = exports.deleteStudent = exports.updateStudent = exports.getStudentById = exports.getStudents = exports.createStudent = void 0;
+exports.bulkUploadStudents = exports.mapStudentsToMentor = exports.deleteMentor = exports.updateMentor = exports.getMentorById = exports.getMentors = exports.createMentor = exports.deleteStudent = exports.updateStudent = exports.getStudentById = exports.getStudents = exports.createStudent = void 0;
 const User_1 = __importDefault(require("../models/User"));
 const Student_1 = __importDefault(require("../models/Student"));
 const Mentor_1 = __importDefault(require("../models/Mentor"));
@@ -34,6 +34,16 @@ const getStudents = async (req, res) => {
         filter.year = year;
     if (status)
         filter.status = status;
+    if (req.query.rollNo)
+        filter.rollNo = { $regex: req.query.rollNo, $options: 'i' };
+    if (req.query.familyIncome)
+        filter.familyIncome = { $regex: req.query.familyIncome, $options: 'i' };
+    if (req.query.minCgpa)
+        filter.cgpa = { $gte: parseFloat(req.query.minCgpa) };
+    if (req.query.maxArrears)
+        filter.arrearCount = { $lte: parseInt(req.query.maxArrears) };
+    if (req.query.goodAt)
+        filter.goodAt = { $in: req.query.goodAt.split(',').map(s => s.trim()) };
     // ----- Name search -----
     if (name) {
         filter.name = { $regex: name, $options: "i" };
@@ -51,8 +61,27 @@ const getStudents = async (req, res) => {
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum);
     const total = await Student_1.default.countDocuments(filter);
+    const studentIds = students.map((s) => s._id);
+    // Grouped points for real-time accuracy
+    const pointsAgg = await require('../models/Point').default.aggregate([
+        { $match: { studentId: { $in: studentIds } } },
+        { $group: { _id: '$studentId', points: { $sum: '$points' } } }
+    ]);
+    const pointsMap = {};
+    pointsAgg.forEach((p) => { pointsMap[p._id.toString()] = p.points; });
+    const profiles = await require('../models/OnlineProfile').default.find({ studentId: { $in: studentIds } });
+    const profileMap = {};
+    profiles.forEach((p) => { profileMap[p.studentId.toString()] = { github: p.github, linkedin: p.linkedin, leetcode: p.leetcode, portfolio: p.portfolio, codechef: p.codechef }; });
+    const mappedStudents = students.map((s) => {
+        const studentData = s.toJSON ? s.toJSON() : s;
+        return {
+            ...studentData,
+            rewardPoints: pointsMap[s._id.toString()] || 0,
+            socials: profileMap[s._id.toString()] || null
+        };
+    });
     res.json({
-        students,
+        students: mappedStudents,
         pagination: {
             total,
             page: pageNum,
@@ -138,3 +167,41 @@ const mapStudentsToMentor = async (req, res) => {
     res.json({ message: 'Mapped', count: mappings.length });
 };
 exports.mapStudentsToMentor = mapStudentsToMentor;
+const bulkUploadStudents = async (req, res) => {
+    try {
+        const { students } = req.body; // Array of student objects from frontend
+        if (!Array.isArray(students))
+            return res.status(400).json({ message: 'Invalid payload' });
+        const results = {
+            success: 0,
+            failed: 0,
+            errors: []
+        };
+        for (const data of students) {
+            try {
+                const password = data.password || 'ChangeMe123!';
+                const existing = await User_1.default.findOne({ email: data.email });
+                if (existing) {
+                    results.failed++;
+                    results.errors.push({ email: data.email, error: 'Email already exists' });
+                    continue;
+                }
+                const passwordHash = await bcrypt_1.default.hash(password, 10);
+                const user = new User_1.default({ role: 'STUDENT', email: data.email, passwordHash });
+                await user.save();
+                const student = new Student_1.default({ ...data, userId: user._id });
+                await student.save();
+                results.success++;
+            }
+            catch (err) {
+                results.failed++;
+                results.errors.push({ email: data.email, error: err.message });
+            }
+        }
+        res.status(200).json({ message: 'Bulk upload completed', results });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    }
+};
+exports.bulkUploadStudents = bulkUploadStudents;

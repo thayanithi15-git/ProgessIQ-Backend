@@ -136,6 +136,72 @@ const getMentorStats = async (req, res) => {
             { $sort: { _id: 1 } },
             { $project: { _id: 0, date: '$_id', points: 1, awards: 1 } }
         ]);
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setDate(1);
+        sixMonthsAgo.setHours(0, 0, 0, 0);
+        const monthlyApprovalRows = await Approval_1.default.aggregate([
+            {
+                $match: {
+                    mentorId: new mongoose_1.default.Types.ObjectId(mentorId),
+                    approvedAt: { $gte: sixMonthsAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        month: { $dateToString: { format: '%Y-%m', date: '$approvedAt' } },
+                        entityType: '$entityType',
+                        status: { $toUpper: { $ifNull: ['$status', 'PENDING'] } }
+                    },
+                    total: { $sum: 1 }
+                }
+            }
+        ]);
+        const monthKeys = [];
+        for (let i = 5; i >= 0; i -= 1) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+        }
+        const monthlyMap = {};
+        monthKeys.forEach((month) => {
+            monthlyMap[month] = {
+                month,
+                project: 0,
+                task: 0,
+                internship: 0,
+                certification: 0,
+                approved: 0,
+                rejected: 0,
+                pending: 0,
+                total: 0
+            };
+        });
+        monthlyApprovalRows.forEach((row) => {
+            const month = row._id.month;
+            const entityType = String(row._id.entityType || '').toUpperCase();
+            const status = String(row._id.status || '').toUpperCase();
+            const total = row.total || 0;
+            if (!monthlyMap[month])
+                return;
+            if (entityType === 'PROJECT')
+                monthlyMap[month].project += total;
+            if (entityType === 'TASK')
+                monthlyMap[month].task += total;
+            if (entityType === 'INTERNSHIP')
+                monthlyMap[month].internship += total;
+            if (entityType === 'CERTIFICATION')
+                monthlyMap[month].certification += total;
+            if (status === 'REJECTED')
+                monthlyMap[month].rejected += total;
+            else if (status === 'PENDING')
+                monthlyMap[month].pending += total;
+            else
+                monthlyMap[month].approved += total;
+            monthlyMap[month].total += total;
+        });
+        const workProgressMonthly = monthKeys.map((month) => monthlyMap[month]);
         const projectRows = await Project_1.default.find({ mentorId })
             .populate('studentId', 'firstName lastName')
             .sort({ completedAt: -1, _id: -1 })
@@ -173,7 +239,8 @@ const getMentorStats = async (req, res) => {
                 activityData: approvalTrend,
                 charts: {
                     approvalTrend,
-                    pointsTrend
+                    pointsTrend,
+                    workProgressMonthly
                 },
                 approvals: {
                     projects: statusCount(projectStatusAgg),

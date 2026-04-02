@@ -6,6 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSurveyResponses = exports.listSurveys = exports.createSurvey = void 0;
 const Survey_1 = __importDefault(require("../../models/Survey"));
 const SurveyResponse_1 = __importDefault(require("../../models/SurveyResponse"));
+const Student_1 = __importDefault(require("../../models/Student"));
+const MentorStudentMapping_1 = __importDefault(require("../../models/MentorStudentMapping"));
+const notificationService_1 = require("../../services/notificationService");
 const createSurvey = async (req, res) => {
     try {
         const mentorId = req.user.mentorId || req.user.id;
@@ -21,6 +24,23 @@ const createSurvey = async (req, res) => {
             status: 'Active'
         });
         await survey.save();
+        // Notify all assigned students
+        const mappings = await MentorStudentMapping_1.default.find({ mentorId, isActive: true }).select('studentId');
+        if (mappings.length > 0) {
+            const studentIds = mappings.map((m) => m.studentId);
+            const studentsToNotify = await Student_1.default.find({ _id: { $in: studentIds } });
+            for (const st of studentsToNotify) {
+                if (st.userId) {
+                    await notificationService_1.NotificationService.send({
+                        userId: st.userId.toString(),
+                        title: 'New Survey Available',
+                        message: `A new survey "${title}" has been published by your mentor.`,
+                        type: 'SURVEY',
+                        sendEmail: true
+                    });
+                }
+            }
+        }
         res.status(201).json({
             success: true,
             data: {

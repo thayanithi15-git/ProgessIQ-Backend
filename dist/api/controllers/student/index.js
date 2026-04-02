@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.myNotifications = exports.updateSurveyResponse = exports.getSurveyResponses = exports.respondToSurvey = exports.getSurveyById = exports.listAvailableSurveys = exports.getDepartmentRankings = exports.getStudentRanking = exports.getAllRankings = exports.getCompleteProfile = exports.updateProfile = exports.getProfile = exports.getInternshipFeedback = exports.deleteInternship = exports.updateInternship = exports.getInternshipById = exports.listInternships = exports.createInternship = exports.getCertificationFeedback = exports.deleteCertification = exports.updateCertification = exports.getCertificationById = exports.listCertifications = exports.createCertification = exports.getTaskFeedback = exports.submitTaskUpdate = exports.deleteTask = exports.updateTask = exports.getTaskById = exports.listStudentTasks = exports.createTask = exports.getProjectFeedback = exports.deleteProject = exports.updateProject = exports.getProjectById = exports.listStudentProjects = exports.createProject = exports.submitActivityLog = exports.getActivityLogs = exports.getTaskCompletionChart = exports.getMonthlyActivityChart = exports.getPointsTrendChart = exports.getHeatmapData = exports.getStudentDashboard = void 0;
+exports.myNotifications = exports.updateSurveyResponse = exports.getSurveyResponses = exports.respondToSurvey = exports.getSurveyById = exports.listAvailableSurveys = exports.getDepartmentRankings = exports.getStudentRanking = exports.getAllRankings = exports.updateSocialLinks = exports.getSocialLinks = exports.getCompleteProfile = exports.updateProfile = exports.getProfile = exports.getInternshipFeedback = exports.deleteInternship = exports.updateInternship = exports.getInternshipById = exports.listInternships = exports.createInternship = exports.getCertificationFeedback = exports.deleteCertification = exports.updateCertification = exports.getCertificationById = exports.listCertifications = exports.createCertification = exports.getTaskFeedback = exports.startTask = exports.submitTaskUpdate = exports.deleteTask = exports.updateTask = exports.getTaskById = exports.listStudentTasks = exports.createTask = exports.startProject = exports.submitProjectUpdate = exports.getProjectFeedback = exports.deleteProject = exports.updateProject = exports.getProjectById = exports.listStudentProjects = exports.createProject = exports.submitActivityLog = exports.getActivityLogs = exports.getTaskCompletionChart = exports.getMonthlyActivityChart = exports.getPointsTrendChart = exports.getHeatmapData = exports.getStudentDashboard = void 0;
 // Dashboard
 var dashboard_1 = require("./dashboard");
 Object.defineProperty(exports, "getStudentDashboard", { enumerable: true, get: function () { return dashboard_1.getStudentDashboard; } });
@@ -18,6 +18,8 @@ Object.defineProperty(exports, "getProjectById", { enumerable: true, get: functi
 Object.defineProperty(exports, "updateProject", { enumerable: true, get: function () { return projects_1.updateProject; } });
 Object.defineProperty(exports, "deleteProject", { enumerable: true, get: function () { return projects_1.deleteProject; } });
 Object.defineProperty(exports, "getProjectFeedback", { enumerable: true, get: function () { return projects_1.getProjectFeedback; } });
+Object.defineProperty(exports, "submitProjectUpdate", { enumerable: true, get: function () { return projects_1.submitProjectUpdate; } });
+Object.defineProperty(exports, "startProject", { enumerable: true, get: function () { return projects_1.startProject; } });
 // Tasks
 var tasks_1 = require("./tasks");
 Object.defineProperty(exports, "createTask", { enumerable: true, get: function () { return tasks_1.createTask; } });
@@ -26,6 +28,7 @@ Object.defineProperty(exports, "getTaskById", { enumerable: true, get: function 
 Object.defineProperty(exports, "updateTask", { enumerable: true, get: function () { return tasks_1.updateTask; } });
 Object.defineProperty(exports, "deleteTask", { enumerable: true, get: function () { return tasks_1.deleteTask; } });
 Object.defineProperty(exports, "submitTaskUpdate", { enumerable: true, get: function () { return tasks_1.submitTaskUpdate; } });
+Object.defineProperty(exports, "startTask", { enumerable: true, get: function () { return tasks_1.startTask; } });
 Object.defineProperty(exports, "getTaskFeedback", { enumerable: true, get: function () { return tasks_1.getTaskFeedback; } });
 // Certifications
 var certifications_1 = require("./certifications");
@@ -48,6 +51,8 @@ var profile_1 = require("./profile");
 Object.defineProperty(exports, "getProfile", { enumerable: true, get: function () { return profile_1.getProfile; } });
 Object.defineProperty(exports, "updateProfile", { enumerable: true, get: function () { return profile_1.updateProfile; } });
 Object.defineProperty(exports, "getCompleteProfile", { enumerable: true, get: function () { return profile_1.getCompleteProfile; } });
+Object.defineProperty(exports, "getSocialLinks", { enumerable: true, get: function () { return profile_1.getSocialLinks; } });
+Object.defineProperty(exports, "updateSocialLinks", { enumerable: true, get: function () { return profile_1.updateSocialLinks; } });
 // Rankings
 var rankings_1 = require("./rankings");
 Object.defineProperty(exports, "getAllRankings", { enumerable: true, get: function () { return rankings_1.getAllRankings; } });

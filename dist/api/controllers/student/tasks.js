@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTaskFeedback = exports.submitTaskUpdate = exports.deleteTask = exports.updateTask = exports.getTaskById = exports.listStudentTasks = exports.createTask = void 0;
+exports.getTaskFeedback = exports.startTask = exports.submitTaskUpdate = exports.deleteTask = exports.updateTask = exports.getTaskById = exports.listStudentTasks = exports.createTask = void 0;
 const Task_1 = __importDefault(require("../../models/Task"));
 const Feedback_1 = __importDefault(require("../../models/Feedback"));
 /**
@@ -61,7 +61,7 @@ const listStudentTasks = async (req, res) => {
                 source: 'TASK',
                 sourceId: task._id
             });
-            const isOverdue = task.dueDate < new Date() && task.status !== 'COMPLETED';
+            const isOverdue = task.dueDate < new Date() && task.status !== 'APPROVED' && task.status !== 'SUBMITTED';
             return {
                 ...task.toObject(),
                 feedback: feedback?.message || null,
@@ -102,7 +102,7 @@ const getTaskById = async (req, res) => {
             source: 'TASK',
             sourceId: id
         }).populate('mentorId', 'firstName lastName email');
-        const isOverdue = task.dueDate < new Date() && task.status !== 'COMPLETED';
+        const isOverdue = task.dueDate < new Date() && task.status !== 'APPROVED' && task.status !== 'SUBMITTED';
         const mentorId = feedback?.mentorId;
         res.json({
             success: true,
@@ -135,9 +135,9 @@ const updateTask = async (req, res) => {
         if (!task) {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
-        // Allow update only if not completed
-        if (task.status === 'COMPLETED') {
-            return res.status(400).json({ success: false, message: 'Cannot update completed task' });
+        // Allow update only if not submitted/approved
+        if (['SUBMITTED', 'APPROVED'].includes(task.status)) {
+            return res.status(400).json({ success: false, message: 'Cannot update a submitted or approved task' });
         }
         const updated = await Task_1.default.findByIdAndUpdate(id, req.body, { new: true });
         res.json({
@@ -187,14 +187,18 @@ const submitTaskUpdate = async (req, res) => {
     try {
         const studentId = req.user.studentId;
         const { id } = req.params;
-        const { completedAt } = req.body;
+        const { completedAt, submissionNote } = req.body;
         const task = await Task_1.default.findOne({ _id: id, studentId });
         if (!task) {
             return res.status(404).json({ success: false, message: 'Task not found' });
         }
+        if (['APPROVED', 'SUBMITTED'].includes(task.status)) {
+            return res.status(400).json({ success: false, message: 'Task already submitted or approved' });
+        }
         const updated = await Task_1.default.findByIdAndUpdate(id, {
             status: 'SUBMITTED',
-            completedAt: completedAt || new Date()
+            completedAt: completedAt || new Date(),
+            submissionNote: submissionNote || ''
         }, { new: true });
         res.json({
             success: true,
@@ -207,6 +211,33 @@ const submitTaskUpdate = async (req, res) => {
     }
 };
 exports.submitTaskUpdate = submitTaskUpdate;
+/**
+ * START TASK (mark In Progress)
+ * PUT /api/student/tasks/:id/start
+ */
+const startTask = async (req, res) => {
+    try {
+        const studentId = req.user.studentId;
+        const { id } = req.params;
+        const task = await Task_1.default.findOne({ _id: id, studentId });
+        if (!task) {
+            return res.status(404).json({ success: false, message: 'Task not found' });
+        }
+        if (task.status !== 'PENDING') {
+            return res.status(400).json({ success: false, message: 'Task can only be started when PENDING' });
+        }
+        const updated = await Task_1.default.findByIdAndUpdate(id, { status: 'IN_PROGRESS' }, { new: true });
+        res.json({
+            success: true,
+            message: 'Task started',
+            data: updated
+        });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: 'Error starting task', error });
+    }
+};
+exports.startTask = startTask;
 /**
  * GET TASK FEEDBACK
  * GET /api/student/tasks/:id/feedback

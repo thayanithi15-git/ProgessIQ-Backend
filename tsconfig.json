@@ -8,6 +8,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./api/types"
+    ]
+  },
+  "include": ["api/**/*", "api/types/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

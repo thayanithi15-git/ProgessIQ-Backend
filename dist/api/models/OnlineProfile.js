@@ -9,7 +9,8 @@ const onlineProfileSchema = new mongoose_1.default.Schema({
     github: { type: String },
     linkedin: { type: String },
     leetcode: { type: String },
-    portfolio: { type: String }
+    portfolio: { type: String },
+    codechef: { type: String }
 });
 const OnlineProfile = mongoose_1.default.model('OnlineProfile', onlineProfileSchema);
 exports.default = OnlineProfile;

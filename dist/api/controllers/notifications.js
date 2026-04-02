@@ -11,11 +11,24 @@ const listNotifications = async (req, res) => {
     res.json({ notifications });
 };
 exports.listNotifications = listNotifications;
+const notificationService_1 = require("../services/notificationService");
 const createNotification = async (req, res) => {
-    const { userId, message, type = 'INFO' } = req.body;
-    const n = new Notification_1.default({ userId, message, type, read: false, createdAt: new Date() });
-    await n.save();
-    res.status(201).json({ n });
+    try {
+        const { userId, title, message, type = 'INFO', link, sendEmail = false } = req.body;
+        const notification = await notificationService_1.NotificationService.send({
+            userId,
+            title: title || 'New Notification', // Fallback title
+            message,
+            type,
+            link,
+            sendEmail
+        });
+        res.status(201).json({ success: true, notification });
+    }
+    catch (error) {
+        console.error('Error creating notification:', error);
+        res.status(500).json({ success: false, message: 'Failed to create notification', error: error.message });
+    }
 };
 exports.createNotification = createNotification;
 const markRead = async (req, res) => {

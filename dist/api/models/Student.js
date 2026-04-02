@@ -17,9 +17,14 @@ const studentSchema = new mongoose_1.default.Schema({
     department: { type: String, required: true },
     year: { type: String, required: true },
     academicYear: { type: String, required: true },
+    rollNo: { type: String, required: true },
+    cgpa: { type: Number, default: 0 },
+    arrearCount: { type: Number, default: 0 },
+    familyIncome: { type: String },
+    goodAt: { type: [String], default: [] },
     rewardPoints: { type: Number, default: 0 },
     status: { type: String, default: 'Active' },
     createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 const Student = mongoose_1.default.model('Student', studentSchema);
 exports.default = Student;

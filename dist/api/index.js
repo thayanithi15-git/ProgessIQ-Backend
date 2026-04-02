@@ -78,15 +78,17 @@ const studentRoutes_1 = __importDefault(require("./routes/studentRoutes"));
 const notificationsRoutes_1 = __importDefault(require("./routes/notificationsRoutes"));
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/admin", adminRoutes_1.default);
-app.use("/api/mentors", mentorRoutes_1.default);
+app.use("/api/mentor", mentorRoutes_1.default);
 app.use("/api/student", studentRoutes_1.default);
 app.use("/api/notifications", notificationsRoutes_1.default);
 const errorHandler_1 = require("./middleware/errorHandler");
 app.use(errorHandler_1.errorHandler);
 // ================= START SERVER =================
+const cronService_1 = require("./services/cronService");
 // Only start listener in LOCAL — not in Vercel
 if (process.env.NODE_ENV !== "production") {
     connectDB().then(() => {
+        (0, cronService_1.startCronJobs)();
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
         });
