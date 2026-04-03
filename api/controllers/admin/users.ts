@@ -5,12 +5,29 @@ import Mentor from '../../models/Mentor';
 import bcrypt from 'bcrypt';
 
 export const listUsers = async (req: Request, res: Response) => {
-  const { page = 1, limit = 20, search } = req.query as any;
+  const { page = 1, limit = 10, role, isActive, email } = req.query as any;
   const q: any = {};
-  if (search) q.email = { $regex: search, $options: 'i' };
-  const users = await User.find(q).skip((page - 1) * limit).limit(Number(limit));
+  
+  if (email) q.email = { $regex: email, $options: 'i' };
+  if (role && role !== 'all') q.role = role;
+  if (isActive !== undefined) q.isActive = isActive === 'true';
+
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+
+  const users = await User.find(q)
+    .sort({ createdAt: -1 })
+    .skip((pageNum - 1) * limitNum)
+    .limit(limitNum);
+    
   const total = await User.countDocuments(q);
-  res.json({ users, total });
+  
+  res.json({ 
+    users, 
+    total,
+    page: pageNum,
+    totalPages: Math.ceil(total / limitNum)
+  });
 };
 
 export const viewUser = async (req: Request, res: Response) => {

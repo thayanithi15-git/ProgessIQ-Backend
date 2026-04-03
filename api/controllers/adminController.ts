@@ -21,7 +21,6 @@ export const createStudent = async (req: Request, res: Response) => {
 };
 
 export const getStudents = async (req: Request, res: Response) => {
-
   const {
     page = "1",
     limit = "20",
@@ -46,9 +45,12 @@ export const getStudents = async (req: Request, res: Response) => {
   if (req.query.maxArrears) filter.arrearCount = { $lte: parseInt(req.query.maxArrears as string) };
   if (req.query.goodAt) filter.goodAt = { $in: (req.query.goodAt as string).split(',').map(s => s.trim()) };
 
-  // ----- Name search -----
+  // ----- Name search (across firstName and lastName) -----
   if (name) {
-    filter.name = { $regex: name, $options: "i" };
+    filter.$or = [
+      { firstName: { $regex: name, $options: "i" } },
+      { lastName: { $regex: name, $options: "i" } }
+    ];
   }
 
   // ----- Email search from User collection -----
@@ -58,7 +60,6 @@ export const getStudents = async (req: Request, res: Response) => {
     }).select("_id");
 
     const userIds = users.map((u) => u._id);
-
     filter.userId = { $in: userIds };
   }
 
@@ -94,22 +95,18 @@ export const getStudents = async (req: Request, res: Response) => {
 
   res.json({
     students: mappedStudents,
-    pagination: {
-      total,
-      page: pageNum,
-      limit: limitNum,
-      totalPages: Math.ceil(total / limitNum),
-    },
+    total,
+    page: pageNum,
+    totalPages: Math.ceil(total / limitNum)
   });
 };
-
 
 export const getStudentById = async (req: Request, res: Response) => {
   const { id } = req.params;
   const student = await Student.findById(id).populate('userId', 'email');
   if (!student) return res.status(404).json({ message: 'Not found' });
   res.json({ student });
-}
+};
 
 export const updateStudent = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -126,7 +123,6 @@ export const deleteStudent = async (req: Request, res: Response) => {
   res.json({ message: 'Deleted' });
 };
 
-// Mentor CRUD
 export const createMentor = async (req: Request, res: Response) => {
   const data = req.body;
   const existing = await Mentor.findOne({ email: data.email });
@@ -137,9 +133,44 @@ export const createMentor = async (req: Request, res: Response) => {
   res.status(201).json({ mentor });
 };
 
+
 export const getMentors = async (req: Request, res: Response) => {
-  const mentors = await Mentor.find();
-  res.json({ mentors });
+  try {
+    const {
+      page = "1",
+      limit = "10",
+      department,
+      designation,
+      place,
+      name,
+      email,
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+
+    const filter: any = {};
+    if (department && department !== 'all') filter.department = department;
+    if (designation && designation !== 'all') filter.designation = designation;
+    if (place && place !== 'all') filter.place = place;
+    if (name) filter.name = { $regex: name, $options: "i" };
+    if (email) filter.email = { $regex: email, $options: "i" };
+
+    const mentors = await Mentor.find(filter)
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
+
+    const total = await Mentor.countDocuments(filter);
+
+    res.json({
+      mentors,
+      total,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error fetching mentors', error: error.message });
+  }
 };
 
 export const getMentorById = async (req: Request, res: Response) => {

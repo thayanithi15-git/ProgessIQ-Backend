@@ -7,7 +7,7 @@ export const getSystemLogs = async (req: Request, res: Response) => {
 
     const query: any = {};
     if (role && role !== 'all') {
-      query.role = role;
+      query.role = { $regex: new RegExp(`^${role}$`, 'i') };
     }
 
     const pageNumber = parseInt(page as string);
