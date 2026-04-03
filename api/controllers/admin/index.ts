@@ -6,3 +6,5 @@ export { listLogs } from './logs';
 export { generateReport, previewReport, getDepartments, getYears, getMentorsReport, getPlatforms } from './reports';
 export { listCertifications } from './certifications';
 export { listTasks } from './tasks';
+export { listInternships, viewInternship } from './internships';
+export { listSurveys, viewSurveyResponses } from './surveys';

@@ -55,6 +55,12 @@ router.get('/projects/:id', adminController.viewProject);
 router.get('/certifications', adminController.listCertifications);
 router.get('/tasks', adminController.listTasks);
 
+// Internships & Surveys
+router.get('/internships', adminController.listInternships);
+router.get('/internships/:id', adminController.viewInternship);
+router.get('/surveys', adminController.listSurveys);
+router.get('/surveys/:id/responses', adminController.viewSurveyResponses);
+
 // Logs
 router.get('/logs', adminController.listLogs);
 
