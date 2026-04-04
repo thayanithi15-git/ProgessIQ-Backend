@@ -106,6 +106,29 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/mentor", mentorRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationsRoutes);
+import { processCronReminders } from "./services/cronService";
+
+// CRON ENDPOINT - Triggered by GitHub Actions
+app.get("/cron/send-reminders", async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const secret = req.query.secret || (authHeader ? authHeader.replace('Bearer ', '') : null);
+
+  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  // Respond immediately to avoid Vercel timeout (10s)
+  res.status(200).json({ message: "Reminder process started in background" });
+
+  // Process in background
+  try {
+    console.log("[Cron] Manual trigger received. Processing...");
+    await processCronReminders();
+    console.log("[Cron] Manual trigger processing finished.");
+  } catch (error) {
+    console.error("[Cron] Error during manual trigger processing:", error);
+  }
+});
 
 import { errorHandler } from "./middleware/errorHandler";
 app.use(errorHandler);

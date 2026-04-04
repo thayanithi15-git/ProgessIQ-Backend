@@ -7,6 +7,7 @@ const projectSchema = new mongoose.Schema({
   description: { type: String, required: true },
   githubLink: { type: String },
   websiteLink: { type: String },
+  dueDate: { type: Date }, // Added for cron reminders
   completedAt: { type: Date },
   status: {
     type: String,

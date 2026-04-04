@@ -117,69 +117,79 @@ export const NotificationService = {
           }
 
           const mailOptions = {
-            from: `"College Work - ProgressIQ" <${process.env.EMAIL_USER || 'noreply@progressiq.com'}>`,
+            from: `"ProgressIQ Reminders" <${process.env.EMAIL_USER || 'noreply@progressiq.com'}>`,
             to: user.email,
-            subject: `[College Work] ${params.title}`,
+            subject: `[Reminder] ${params.title}`,
             html: `
-              <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                
-                <!-- HEADER -->
-                <div style="background-color: #4F46E5; padding: 24px; text-align: center; color: white;">
-                  <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px;">College Work <span style="font-weight: 300;">| ProgressIQ</span></h1>
-                  <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">System Notification</p>
-                </div>
-                
-                <div style="padding: 32px 24px;">
-                  <p style="font-size: 18px; color: #111827; font-weight: 600; margin-top: 0;">Hello ${studentName},</p>
-                  
-                  <!-- NOTIFICATION BOX -->
-                  <div style="background-color: #F8FAFC; border-left: 4px solid #4F46E5; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
-                    <h3 style="margin: 0 0 8px 0; color: #1F2937; font-size: 16px;">${params.title}</h3>
-                    <p style="font-size: 15px; color: #4B5563; line-height: 1.6; margin: 0;">${params.message}</p>
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <style>
+                  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; }
+                  .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+                  .header { padding: 32px; text-align: center; border-bottom: 1px solid #f3f4f6; }
+                  .logo { font-size: 24px; font-weight: 800; color: #111827; letter-spacing: -0.025em; display: flex; align-items: center; justify-content: center; }
+                  .logo span { color: #4f46e5; margin-left: 4px; }
+                  .content { padding: 40px; }
+                  .greeting { font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 16px; }
+                  .message { font-size: 16px; color: #4b5563; line-height: 1.6; margin-bottom: 32px; }
+                  .details-card { background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 32px; overflow: hidden; }
+                  .details-header { background-color: #f9fafb; padding: 12px 20px; border-bottom: 1px solid #e5e7eb; font-size: 14px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; }
+                  .details-row { display: flex; border-bottom: 1px solid #f3f4f6; padding: 14px 20px; }
+                  .details-row:last-child { border-bottom: none; }
+                  .details-label { width: 140px; font-size: 14px; color: #6b7280; flex-shrink: 0; }
+                  .details-value { font-size: 14px; color: #111827; font-weight: 600; }
+                  .btn-container { text-align: center; margin-top: 8px; }
+                  .btn { display: inline-block; background-color: #111827; color: #ffffff !important; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+                  .footer { background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #f3f4f6; }
+                  .footer-text { font-size: 13px; color: #9ca3af; margin-bottom: 8px; }
+                  .mentor-info { font-size: 14px; color: #4b5563; margin-top: 24px; padding-top: 24px; border-top: 1px dotted #e5e7eb; }
+                </style>
+              </head>
+              <body>
+                <div class="container">
+                  <div class="header">
+                    <div class="logo">Progress<span>IQ</span></div>
                   </div>
-
-                  <!-- CONTACT INFO GRIDS -->
-                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 32px;">
-                    <tr>
-                      <!-- STUDENT INFO -->
-                      <td width="50%" valign="top" style="padding-right: 12px;">
-                        <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E5E7EB; padding-bottom: 4px;">Student Details</h4>
-                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #4B5563;"><strong>Name:</strong> ${studentName}</p>
-                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #4B5563;"><strong>Email:</strong> ${user.email}</p>
-                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #4B5563;"><strong>Phone:</strong> ${studentPhone}</p>
-                      </td>
-                      
-                      <!-- MENTOR INFO -->
-                      <td width="50%" valign="top" style="padding-left: 12px;">
-                        <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #E5E7EB; padding-bottom: 4px;">Mentor Details</h4>
-                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #4B5563;"><strong>Name:</strong> ${mentorName}</p>
-                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #4B5563;"><strong>Email:</strong> ${mentorEmail}</p>
-                        <p style="margin: 0 0 6px 0; font-size: 14px; color: #4B5563;"><strong>Phone:</strong> ${mentorPhone}</p>
-                      </td>
-                    </tr>
-                  </table>
-
-                  ${finalLink ? `
-                    <div style="margin-top: 32px; text-align: center;">
-                      <p style="margin: 0 0 12px 0; font-size: 14px; color: #4B5563;">See here to get detailed view on our ProgressIQ dashboard:</p>
-                      <a href="${finalLink}" style="display: inline-block; background-color: #4F46E5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; transition: background-color 0.2s;">
-                        Go to Dashboard
-                      </a>
-                    </div>
-                  ` : ''}
-                  
-                  <div style="margin-top: 32px; padding: 16px; background-color: #FEF3C7; border-radius: 8px; border: 1px solid #FDE68A;">
-                    <p style="margin: 0; color: #92400E; font-size: 14px; text-align: center; font-weight: 500;">
-                      If you have any doubts or questions regarding this update, please contact your mentor using the details provided above.
+                  <div class="content">
+                    <div class="greeting">Dear ${studentName},</div>
+                    <p class="message">
+                      This is a reminder regarding your upcoming deadline. Please ensure you complete and submit your work through the portal before the deadline to maintain your progress.
                     </p>
+                    
+                    <div class="details-card">
+                      <div class="details-header">Deadline Details</div>
+                      <div class="details-row">
+                        <div class="details-label">Position/Item</div>
+                        <div class="details-value">${params.title.replace('Deadline:', '').trim()}</div>
+                      </div>
+                      <div class="details-row">
+                        <div class="details-label">Type</div>
+                        <div class="details-value">${params.type}</div>
+                      </div>
+                      <div class="details-row">
+                        <div class="details-label">Deadline</div>
+                        <div class="details-value">${params.message.includes('tomorrow') ? 'Tomorrow' : 'In 2 days'} (${new Date(new Date().setDate(new Date().getDate() + (params.message.includes('tomorrow') ? 1 : 2))).toLocaleDateString('en-GB')})</div>
+                      </div>
+                    </div>
+
+                    <div class="btn-container">
+                      <a href="${finalLink}" class="btn">View Assignment</a>
+                    </div>
+
+                    <div class="mentor-info">
+                      <strong>Mentor Contact:</strong><br/>
+                      ${mentorName} (${mentorEmail})<br/>
+                      Phone: ${mentorPhone}
+                    </div>
+                  </div>
+                  <div class="footer">
+                    <div class="footer-text">ProgressIQ • Advanced Intern Management System</div>
+                    <div class="footer-text">This is an automated message, please do not reply.</div>
                   </div>
                 </div>
-                
-                <!-- FOOTER -->
-                <div style="background-color: #F8FAFC; padding: 20px; text-align: center; font-size: 12px; color: #64748B; border-top: 1px solid #E5E7EB;">
-                  <p style="margin: 0;">This is an automated message regarding your College Work from ProgressIQ. Please do not reply directly to this email.</p>
-                </div>
-              </div>
+              </body>
+              </html>
             `
           };
 

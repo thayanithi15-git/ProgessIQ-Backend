@@ -1,0 +1,15 @@
+name: Daily Reminder Cron Job
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 8:00 AM UTC every day
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  ping-cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger ProgressIQ Reminders
+        run: |
+          curl -X GET "https://progess-iq-be.vercel.app/cron/send-reminders?secret=${{ secrets.CRON_SECRET }}" \
+          -H "Content-Type: application/json"
