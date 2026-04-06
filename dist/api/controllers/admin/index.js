@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listTasks = exports.listCertifications = exports.getPlatforms = exports.getMentorsReport = exports.getYears = exports.getDepartments = exports.previewReport = exports.generateReport = exports.listLogs = exports.viewProject = exports.listProjects = exports.createAdminUser = exports.deleteUser = exports.updateUser = exports.createStudentUser = exports.viewUser = exports.listUsers = exports.getPointsBySource = exports.getInternshipTypesChart = exports.getProjectStatusChart = exports.getYearDistribution = exports.getDepartmentDistribution = exports.getMonthlySubmissions = exports.getPointsTrendChart = exports.getActivityChart = exports.getTopStudents = exports.getAdminStats = exports.bulkUploadStudents = exports.getMentorById = exports.getStudentById = exports.mapStudentsToMentor = exports.deleteMentor = exports.updateMentor = exports.getMentors = exports.createMentor = exports.deleteStudent = exports.updateStudent = exports.getStudents = exports.createStudent = void 0;
+exports.viewSurveyResponses = exports.listSurveys = exports.viewInternship = exports.listInternships = exports.listTasks = exports.listCertifications = exports.getPlatforms = exports.getMentorsReport = exports.getYears = exports.getDepartments = exports.previewReport = exports.generateReport = exports.listLogs = exports.viewProject = exports.listProjects = exports.createAdminUser = exports.deleteUser = exports.updateUser = exports.createStudentUser = exports.viewUser = exports.listUsers = exports.getPointsBySource = exports.getInternshipTypesChart = exports.getProjectStatusChart = exports.getYearDistribution = exports.getDepartmentDistribution = exports.getMonthlySubmissions = exports.getPointsTrendChart = exports.getActivityChart = exports.getTopStudents = exports.getAdminStats = exports.bulkUploadStudents = exports.getMentorById = exports.getStudentById = exports.mapStudentsToMentor = exports.deleteMentor = exports.updateMentor = exports.getMentors = exports.createMentor = exports.deleteStudent = exports.updateStudent = exports.getStudents = exports.createStudent = void 0;
 var adminController_1 = require("../adminController");
 Object.defineProperty(exports, "createStudent", { enumerable: true, get: function () { return adminController_1.createStudent; } });
 Object.defineProperty(exports, "getStudents", { enumerable: true, get: function () { return adminController_1.getStudents; } });
@@ -48,3 +48,9 @@ var certifications_1 = require("./certifications");
 Object.defineProperty(exports, "listCertifications", { enumerable: true, get: function () { return certifications_1.listCertifications; } });
 var tasks_1 = require("./tasks");
 Object.defineProperty(exports, "listTasks", { enumerable: true, get: function () { return tasks_1.listTasks; } });
+var internships_1 = require("./internships");
+Object.defineProperty(exports, "listInternships", { enumerable: true, get: function () { return internships_1.listInternships; } });
+Object.defineProperty(exports, "viewInternship", { enumerable: true, get: function () { return internships_1.viewInternship; } });
+var surveys_1 = require("./surveys");
+Object.defineProperty(exports, "listSurveys", { enumerable: true, get: function () { return surveys_1.listSurveys; } });
+Object.defineProperty(exports, "viewSurveyResponses", { enumerable: true, get: function () { return surveys_1.viewSurveyResponses; } });

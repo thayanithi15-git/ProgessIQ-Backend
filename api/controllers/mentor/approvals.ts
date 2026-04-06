@@ -12,7 +12,6 @@ import mongoose from 'mongoose';
 const toUiStatus = (status: string) => {
   if (status === 'APPROVED') return 'Approved';
   if (status === 'REJECTED') return 'Rejected';
-  if (status === 'COMPLETED') return 'Approved';
   return 'Pending';
 };
 
@@ -21,7 +20,7 @@ const toEntityStatus = (status: string) => (status === 'Approved' ? 'APPROVED' :
 const normalizeEntityType = (value?: string) => String(value || '').toUpperCase();
 const isApprovedStatus = (status?: string) => {
   const s = String(status || '').toUpperCase();
-  return s === 'APPROVED' || s === 'COMPLETED';
+  return s === 'APPROVED';
 };
 
 const getEntityModel = (entityType: string): any => {

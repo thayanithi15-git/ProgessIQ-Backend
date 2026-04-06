@@ -18,15 +18,13 @@ const toUiStatus = (status) => {
         return 'Approved';
     if (status === 'REJECTED')
         return 'Rejected';
-    if (status === 'COMPLETED')
-        return 'Approved';
     return 'Pending';
 };
 const toEntityStatus = (status) => (status === 'Approved' ? 'APPROVED' : status === 'Rejected' ? 'REJECTED' : 'PENDING');
 const normalizeEntityType = (value) => String(value || '').toUpperCase();
 const isApprovedStatus = (status) => {
     const s = String(status || '').toUpperCase();
-    return s === 'APPROVED' || s === 'COMPLETED';
+    return s === 'APPROVED';
 };
 const getEntityModel = (entityType) => {
     const modelMap = {

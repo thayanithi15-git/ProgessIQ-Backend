@@ -33,11 +33,10 @@ const listMentorTasks = async (req, res) => {
                 sourceId: t._id
             });
             const displayStatus = t.status === 'APPROVED' ? 'Done'
-                : t.status === 'COMPLETED' ? 'Done'
-                    : t.status === 'SUBMITTED' ? 'Submitted'
-                        : t.status === 'IN_PROGRESS' ? 'In Progress'
-                            : t.status === 'REJECTED' ? 'Rejected'
-                                : 'To Do';
+                : t.status === 'SUBMITTED' ? 'Submitted'
+                    : t.status === 'IN_PROGRESS' ? 'In Progress'
+                        : t.status === 'REJECTED' ? 'Rejected'
+                            : 'To Do';
             const due = t.dueDate ? new Date(t.dueDate) : new Date();
             const priority = due.getTime() < Date.now() ? 'High' : 'Medium';
             return {
@@ -68,7 +67,7 @@ const listMentorTasks = async (req, res) => {
             data = data.filter((t) => {
                 const row = String(t.rawStatus || '').toLowerCase();
                 if (normalized === 'approved' || normalized === 'completed' || normalized === 'done')
-                    return row === 'approved' || row === 'completed';
+                    return row === 'approved';
                 if (normalized === 'pending' || normalized === 'to do')
                     return row === 'pending';
                 if (normalized === 'in_progress' || normalized === 'in progress')

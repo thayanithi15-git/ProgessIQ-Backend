@@ -81,14 +81,34 @@ app.use("/api/admin", adminRoutes_1.default);
 app.use("/api/mentor", mentorRoutes_1.default);
 app.use("/api/student", studentRoutes_1.default);
 app.use("/api/notifications", notificationsRoutes_1.default);
+const cronService_1 = require("./services/cronService");
+// CRON ENDPOINT - Triggered by GitHub Actions
+app.get("/cron/send-reminders", async (req, res) => {
+    const authHeader = req.headers['authorization'];
+    const secret = req.query.secret || (authHeader ? authHeader.replace('Bearer ', '') : null);
+    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    // Respond immediately to avoid Vercel timeout (10s)
+    res.status(200).json({ message: "Reminder process started in background" });
+    // Process in background
+    try {
+        console.log("[Cron] Manual trigger received. Processing...");
+        await (0, cronService_1.processCronReminders)();
+        console.log("[Cron] Manual trigger processing finished.");
+    }
+    catch (error) {
+        console.error("[Cron] Error during manual trigger processing:", error);
+    }
+});
 const errorHandler_1 = require("./middleware/errorHandler");
 app.use(errorHandler_1.errorHandler);
 // ================= START SERVER =================
-const cronService_1 = require("./services/cronService");
+const cronService_2 = require("./services/cronService");
 // Only start listener in LOCAL — not in Vercel
 if (process.env.NODE_ENV !== "production") {
     connectDB().then(() => {
-        (0, cronService_1.startCronJobs)();
+        (0, cronService_2.startCronJobs)();
         app.listen(PORT, () => {
             console.log(`🚀 Server running on http://localhost:${PORT}`);
         });

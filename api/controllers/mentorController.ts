@@ -98,7 +98,7 @@ export const getAssignedStudents = async (req: Request, res: Response) => {
       { $group: { _id: '$studentId', total: { $sum: 1 } } }
     ]);
     const taskAgg = await Task.aggregate([
-      { $match: { studentId: { $in: studentIds }, status: { $in: ['COMPLETED', 'APPROVED'] } } },
+      { $match: { studentId: { $in: studentIds }, status: 'APPROVED' } },
       { $group: { _id: '$studentId', total: { $sum: 1 } } }
     ]);
     const certAgg = await Certification.aggregate([

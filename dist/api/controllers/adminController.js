@@ -44,9 +44,12 @@ const getStudents = async (req, res) => {
         filter.arrearCount = { $lte: parseInt(req.query.maxArrears) };
     if (req.query.goodAt)
         filter.goodAt = { $in: req.query.goodAt.split(',').map(s => s.trim()) };
-    // ----- Name search -----
+    // ----- Name search (across firstName and lastName) -----
     if (name) {
-        filter.name = { $regex: name, $options: "i" };
+        filter.$or = [
+            { firstName: { $regex: name, $options: "i" } },
+            { lastName: { $regex: name, $options: "i" } }
+        ];
     }
     // ----- Email search from User collection -----
     if (email) {
@@ -82,12 +85,9 @@ const getStudents = async (req, res) => {
     });
     res.json({
         students: mappedStudents,
-        pagination: {
-            total,
-            page: pageNum,
-            limit: limitNum,
-            totalPages: Math.ceil(total / limitNum),
-        },
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum)
     });
 };
 exports.getStudents = getStudents;
@@ -116,7 +116,6 @@ const deleteStudent = async (req, res) => {
     res.json({ message: 'Deleted' });
 };
 exports.deleteStudent = deleteStudent;
-// Mentor CRUD
 const createMentor = async (req, res) => {
     const data = req.body;
     const existing = await Mentor_1.default.findOne({ email: data.email });
@@ -128,8 +127,35 @@ const createMentor = async (req, res) => {
 };
 exports.createMentor = createMentor;
 const getMentors = async (req, res) => {
-    const mentors = await Mentor_1.default.find();
-    res.json({ mentors });
+    try {
+        const { page = "1", limit = "10", department, designation, place, name, email, } = req.query;
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const filter = {};
+        if (department && department !== 'all')
+            filter.department = department;
+        if (designation && designation !== 'all')
+            filter.designation = designation;
+        if (place && place !== 'all')
+            filter.place = place;
+        if (name)
+            filter.name = { $regex: name, $options: "i" };
+        if (email)
+            filter.email = { $regex: email, $options: "i" };
+        const mentors = await Mentor_1.default.find(filter)
+            .skip((pageNum - 1) * limitNum)
+            .limit(limitNum);
+        const total = await Mentor_1.default.countDocuments(filter);
+        res.json({
+            mentors,
+            total,
+            page: pageNum,
+            totalPages: Math.ceil(total / limitNum),
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Error fetching mentors', error: error.message });
+    }
 };
 exports.getMentors = getMentors;
 const getMentorById = async (req, res) => {

@@ -8,13 +8,27 @@ const User_1 = __importDefault(require("../../models/User"));
 const Student_1 = __importDefault(require("../../models/Student"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const listUsers = async (req, res) => {
-    const { page = 1, limit = 20, search } = req.query;
+    const { page = 1, limit = 10, role, isActive, email } = req.query;
     const q = {};
-    if (search)
-        q.email = { $regex: search, $options: 'i' };
-    const users = await User_1.default.find(q).skip((page - 1) * limit).limit(Number(limit));
+    if (email)
+        q.email = { $regex: email, $options: 'i' };
+    if (role && role !== 'all')
+        q.role = role;
+    if (isActive !== undefined)
+        q.isActive = isActive === 'true';
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const users = await User_1.default.find(q)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum);
     const total = await User_1.default.countDocuments(q);
-    res.json({ users, total });
+    res.json({
+        users,
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum)
+    });
 };
 exports.listUsers = listUsers;
 const viewUser = async (req, res) => {
