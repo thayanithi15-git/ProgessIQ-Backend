@@ -60,7 +60,6 @@ export const getMentorStats = async (req: Request, res: Response) => {
       ])
     ]);
 
-    // Top students under mentor based on points
     const top = await Point.aggregate([
       { $match: { studentId: { $in: studentIds } } },
       { $group: { _id: '$studentId', points: { $sum: '$points' } } },
@@ -87,7 +86,6 @@ export const getMentorStats = async (req: Request, res: Response) => {
       }
     ]);
 
-    // Approval trend for dashboard chart (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
 

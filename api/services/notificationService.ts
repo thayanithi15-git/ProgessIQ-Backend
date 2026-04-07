@@ -11,15 +11,13 @@ dotenv.config();
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
 console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "Loaded" : "Missing");
 
-// Create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
-  // service: 'gmail', 
-  // You can change this to any SMTP provider
+
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER || 'progressiq.noreply@gmail.com', // Replace with real credentials in .env
+    user: process.env.EMAIL_USER || 'progressiq.noreply@gmail.com',
     pass: process.env.EMAIL_PASS || 'password_here'
   }
 });
@@ -33,16 +31,11 @@ interface SendNotificationParams {
   sendEmail?: boolean;
 }
 
-/**
- * Service to handle in-app notifications and emails
- */
 export const NotificationService = {
-  /**
-   * Send a notification to a user (in-app + optional email)
-   */
+
   async send(params: SendNotificationParams) {
     try {
-      // 1. Save in-app notification
+
       const notification = new Notification({
         userId: params.userId,
         title: params.title,
@@ -54,7 +47,6 @@ export const NotificationService = {
       });
       await notification.save();
 
-      // 2. Send email if requested
       if (params.sendEmail) {
         console.log(`[NotificationService] Attempting to send email for notification '${params.title}' to userId: ${params.userId}`);
         const user = await User.findById(params.userId);
@@ -65,16 +57,15 @@ export const NotificationService = {
           const student = await Student.findOne({ userId: params.userId });
           const studentName = student ? `${student.firstName} ${student.lastName}` : ((user as any).name || 'Student');
           const studentPhone = student?.phone || 'Not provided';
-          
-          // Fetch mentor mapping
+
           let mentorName = 'Not assigned';
           let mentorEmail = 'N/A';
           let mentorPhone = 'N/A';
-          
+
           if (student) {
             const mapping = await MentorStudentMapping.findOne({ studentId: student._id, isActive: true }).populate('mentorId');
             if (mapping && mapping.mentorId) {
-              const mentor = mapping.mentorId as any; 
+              const mentor = mapping.mentorId as any;
               mentorName = mentor.name || 'Unknown Mentor';
               mentorEmail = mentor.email || 'N/A';
               mentorPhone = mentor.contactNo || 'N/A';
@@ -85,7 +76,6 @@ export const NotificationService = {
             console.warn(`[NotificationService] WARNING: Using default/missing EMAIL_PASS in .env. Email to ${user.email} will likely fail auth.`);
           }
 
-          // Determine the final link to use in the email
           let finalLink = params.link;
           if (!finalLink) {
             const baseUrl = 'https://progress-iq.vercel.app/student/dashboard';
@@ -108,11 +98,11 @@ export const NotificationService = {
                 finalLink = baseUrl;
                 break;
             }
-            // Check for internships/certifications specifically if type is somehow mapped or we use default
+
             if (params.title.toLowerCase().includes('internship')) finalLink = `${baseUrl}/internships`;
             if (params.title.toLowerCase().includes('certificat')) finalLink = `${baseUrl}/certifications`;
           } else if (finalLink.startsWith('/')) {
-            // If internal route is passed like '/student/dashboard/...', prepend the domain
+
             finalLink = `https://progress-iq.vercel.app${finalLink}`;
           }
 
@@ -156,7 +146,7 @@ export const NotificationService = {
                     <p class="message">
                       This is a reminder regarding your upcoming deadline. Please ensure you complete and submit your work through the portal before the deadline to maintain your progress.
                     </p>
-                    
+
                     <div class="details-card">
                       <div class="details-header">Deadline Details</div>
                       <div class="details-row">
@@ -193,7 +183,6 @@ export const NotificationService = {
             `
           };
 
-          // Send mail and log response
           console.log(`[NotificationService] Dispatching email to: ${user.email}...`);
           transporter.sendMail(mailOptions)
             .then((info) => {
@@ -212,9 +201,6 @@ export const NotificationService = {
     }
   },
 
-  /**
-   * Send notification to multiple users
-   */
   async sendBulk(users: string[], params: Omit<SendNotificationParams, 'userId'>) {
     const promises = users.map(userId => this.send({ ...params, userId }));
     return Promise.all(promises);

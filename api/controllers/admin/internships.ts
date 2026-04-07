@@ -25,7 +25,6 @@ export const listInternships = async (req: Request, res: Response) => {
     if (type && type !== 'all') filter.type = type;
     if (paid && paid !== 'all') filter.paid = paid === 'true';
 
-    // Advanced search across company and role
     if (search) {
       filter.$or = [
         { companyName: { $regex: search, $options: 'i' } },
@@ -33,7 +32,6 @@ export const listInternships = async (req: Request, res: Response) => {
       ];
     }
 
-    // Student filter (dept, year)
     const studentFilter: any = {};
     if (department && department !== 'all') studentFilter.department = department;
     if (year && year !== 'all') studentFilter.year = year;

@@ -3,10 +3,10 @@ import mongoose from 'mongoose';
 const reportSchema = new mongoose.Schema({
   generatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   reportType: { type: String, enum: ['pdf', 'excel', 'csv'], required: true },
-  category: { 
-    type: String, 
-    enum: ['students', 'mentors', 'projects', 'internships', 'certifications', 'performance', 'comprehensive'], 
-    required: true 
+  category: {
+    type: String,
+    enum: ['students', 'mentors', 'projects', 'internships', 'certifications', 'performance', 'comprehensive'],
+    required: true
   },
   filters: {
     startDate: Date,
@@ -33,7 +33,7 @@ const reportSchema = new mongoose.Schema({
   fileSize: Number,
   recordCount: Number,
   generatedAt: { type: Date, default: Date.now },
-  expiresAt: { type: Date, default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }, // 30 days
+  expiresAt: { type: Date, default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
   error: String
 });
 

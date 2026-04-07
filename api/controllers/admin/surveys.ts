@@ -21,7 +21,6 @@ export const listSurveys = async (req: Request, res: Response) => {
 
     const total = await Survey.countDocuments(filter);
 
-    // Get response counts for each survey
     const responseCounts = await SurveyResponse.aggregate([
       { $match: { surveyId: { $in: surveys.map(s => s._id) } } },
       { $group: { _id: '$surveyId', count: { $sum: 1 } } }
@@ -68,7 +67,6 @@ export const viewSurveyResponses = async (req: Request, res: Response) => {
 
     const filter: any = { surveyId: id };
 
-    // Apply student filters if provided
     const studentFilter: any = {};
     if (department && department !== 'all') studentFilter.department = department;
     if (year && year !== 'all') studentFilter.year = year;

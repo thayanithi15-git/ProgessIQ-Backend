@@ -1,4 +1,4 @@
-// Dashboard
+
 export {
   getStudentDashboard,
   getHeatmapData,
@@ -9,31 +9,28 @@ export {
   submitActivityLog
 } from './dashboard';
 
-// Projects
-export { 
-  createProject, 
-  listStudentProjects, 
-  getProjectById, 
-  updateProject, 
-  deleteProject, 
+export {
+  createProject,
+  listStudentProjects,
+  getProjectById,
+  updateProject,
+  deleteProject,
   getProjectFeedback,
   submitProjectUpdate,
   startProject
 } from './projects';
 
-// Tasks
-export { 
+export {
   createTask,
-  listStudentTasks, 
+  listStudentTasks,
   getTaskById,
   updateTask,
   deleteTask,
   submitTaskUpdate,
   startTask,
-  getTaskFeedback 
+  getTaskFeedback
 } from './tasks';
 
-// Certifications
 export {
   createCertification,
   listCertifications,
@@ -43,7 +40,6 @@ export {
   getCertificationFeedback
 } from './certifications';
 
-// Internships
 export {
   createInternship,
   listInternships,
@@ -53,7 +49,6 @@ export {
   getInternshipFeedback
 } from './internships';
 
-// Profile
 export {
   getProfile,
   updateProfile,
@@ -62,21 +57,18 @@ export {
   updateSocialLinks
 } from './profile';
 
-// Rankings
 export {
   getAllRankings,
   getStudentRanking,
   getDepartmentRankings
 } from './rankings';
 
-// Surveys
-export { 
-  listAvailableSurveys, 
+export {
+  listAvailableSurveys,
   getSurveyById,
   respondToSurvey,
   getSurveyResponses,
   updateSurveyResponse
 } from './surveys';
 
-// Notifications
 export { listNotifications as myNotifications } from '../notifications';

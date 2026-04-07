@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 export const connectDB = async (): Promise<void> => {
   try {
     const uri = process.env.MONGO_URI;
-    // console.log("Connecting to MongoDB = "+uri);
+
     if (!uri) {
       throw new Error("MONGO_URI environment variable is required");
     }
@@ -24,7 +24,6 @@ export const connectDB = async (): Promise<void> => {
   }
 };
 
-// Connection Events
 mongoose.connection.on("error", (err) => {
   console.error("❌ MongoDB runtime error:", err.message);
 });

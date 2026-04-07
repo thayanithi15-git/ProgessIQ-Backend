@@ -19,7 +19,6 @@ export const login = async (req: Request, res: Response) => {
   if (!match)
     return res.status(401).json({ message: 'Invalid credentials' });
 
-  // Fetch name for log based on role
   let name = user.email;
   try {
     if (user.role === 'Student') {
@@ -39,7 +38,6 @@ export const login = async (req: Request, res: Response) => {
     console.error('Error fetching name for log:', err);
   }
 
-  // Record System Log
   try {
     await SystemLog.create({
       userId: user._id,
@@ -76,14 +74,12 @@ export const googleLogin = async (req: Request, res: Response) => {
 
     const { email, sub, picture, name: googleName } = payload;
 
-    // Check if user exists
     let user = await User.findOne({ email });
 
     if (!user) {
       return res.status(403).json({ message: 'User not authorized. Please contact administrator.' });
     }
 
-    // Update user with google info if not present
     user.googleId = sub;
     user.picture = picture;
     await user.save();
@@ -107,7 +103,6 @@ export const googleLogin = async (req: Request, res: Response) => {
       console.error('Error fetching profile for google login:', err);
     }
 
-    // Record System Log
     try {
       await SystemLog.create({
         userId: user._id,

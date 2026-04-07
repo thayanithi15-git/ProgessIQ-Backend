@@ -5,10 +5,6 @@ import OnlineProfile from '../../models/OnlineProfile';
 import Point from '../../models/Point';
 import { Request, Response } from 'express';
 
-/**
- * GET DASHBOARD PROFILE
- * GET /api/student/profile
- */
 export const getProfile = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -22,11 +18,9 @@ export const getProfile = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
-    // Get mentor info via mapping
     const mapping = await MentorStudentMapping.findOne({ studentId, isActive: true }).populate('mentorId');
     const mentor = mapping?.mentorId as any;
 
-    // Get points for sync
     const pointsData = await Point.find({ studentId });
     const calculatedPoints = pointsData.reduce((sum: number, p: any) => sum + p.points, 0);
 
@@ -74,18 +68,12 @@ export const getProfile = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE PROFILE (not name, email, password)
- * PUT /api/student/profile
- */
 export const updateProfile = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
 
-    // Fields that cannot be updated
     const restrictedFields = ['firstName', 'lastName', 'email', 'userId', 'createdAt'];
 
-    // Remove restricted fields from request
     const updateData: any = {};
     Object.keys(req.body).forEach(key => {
       if (!restrictedFields.includes(key)) {
@@ -109,10 +97,6 @@ export const updateProfile = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET ALL PROFILE DETAILS (Complete Profile)
- * GET /api/student/profile/complete
- */
 export const getCompleteProfile = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -126,11 +110,9 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
-    // Get mentor with all details via mapping
     const mapping = await MentorStudentMapping.findOne({ studentId, isActive: true }).populate('mentorId');
     const mentor = mapping?.mentorId as any;
 
-    // Get points for sync
     const pointsData = await Point.find({ studentId });
     const calculatedPoints = pointsData.reduce((sum: number, p: any) => sum + p.points, 0);
 
@@ -142,7 +124,7 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        // Personal Information
+
         personalInfo: {
           id: student._id,
           firstName: student.firstName,
@@ -157,14 +139,12 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
           rewardPoints: student.rewardPoints
         },
 
-        // Family Information
         familyInfo: {
           parentName: student.parentName,
           parentPhone: student.parentPhone,
           familyIncome: student.familyIncome
         },
 
-        // Academic Information
         academicInfo: {
           department: student.department,
           year: student.year,
@@ -174,12 +154,10 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
           goodAt: student.goodAt
         },
 
-        // Achievement Information
         achievementInfo: {
           rewardPoints: student.rewardPoints
         },
 
-        // Mentor Information
         mentorInfo: mentor ? {
           id: mentor._id,
           name: mentor.name,
@@ -190,7 +168,6 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
           experience: mentor.experience || mentor.designation || null
         } : null,
 
-        // Account Information
         accountInfo: {
           createdAt: student.createdAt,
           lastUpdated: (student as any).updatedAt || student.createdAt
@@ -202,10 +179,6 @@ export const getCompleteProfile = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET SOCIAL LINKS
- * GET /api/student/profile/socials
- */
 export const getSocialLinks = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -217,10 +190,6 @@ export const getSocialLinks = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE SOCIAL LINKS
- * POST /api/student/profile/socials
- */
 export const updateSocialLinks = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;

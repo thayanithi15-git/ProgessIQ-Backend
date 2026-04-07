@@ -15,17 +15,14 @@ export const listTasks = async (req: Request, res: Response) => {
 
     const q: any = {};
 
-    // 🔍 Search by title
     if (search) {
       q.title = { $regex: search, $options: 'i' };
     }
 
-    // 📌 Filter by status
     if (status) {
       q.status = status;
     }
 
-    // 📅 Date range filter
     if (from || to) {
       q.dueDate = {} as any;
 
@@ -38,13 +35,11 @@ export const listTasks = async (req: Request, res: Response) => {
       }
     }
 
-    // Base query
     let query = Task.find(q).populate([
       { path: 'studentId', select: 'name email' },
       { path: 'mentorId', select: 'name email department' },
     ]);
 
-    // ↕ Sorting
     if (sort) {
       const [field, dir] = sort.split(':');
       const order = dir === 'desc' ? -1 : 1;
@@ -53,7 +48,6 @@ export const listTasks = async (req: Request, res: Response) => {
       query = query.sort({ createdAt: -1 });
     }
 
-    // 🔢 Pagination
     const pageNum = Number(page);
     const limitNum = Number(limit);
 

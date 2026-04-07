@@ -37,10 +37,6 @@ function getMentorName(survey: any): string {
   return 'Mentor';
 }
 
-/**
- * GET ALL SURVEYS POSTED BY MENTOR
- * GET /api/student/surveys
- */
 export const listAvailableSurveys = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -48,18 +44,15 @@ export const listAvailableSurveys = async (req: Request, res: Response) => {
     const parsedLimit = parseInt(limit as string);
     const parsedSkip = parseInt(skip as string);
 
-    // Get surveys posted for this student's mentor
     const surveys = await Survey.find()
       .populate('mentorId', 'name')
       .sort({ createdAt: -1 })
       .skip(parsedSkip)
       .limit(parsedLimit);
 
-    // Get responses for this student
     const responses = await SurveyResponse.find({ studentId }).select('surveyId');
     const respondedSurveyIds = responses.map(r => r.surveyId.toString());
 
-    // Add response status to surveys
     const surveysWithStatus = surveys.map(survey => {
       const surveyObj = survey.toObject() as any;
       return {
@@ -87,10 +80,6 @@ export const listAvailableSurveys = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET SINGLE SURVEY WITH QUESTIONS
- * GET /api/student/surveys/:id
- */
 export const getSurveyById = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -102,7 +91,6 @@ export const getSurveyById = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Survey not found' });
     }
 
-    // Check if student already responded
     const existingResponse = await SurveyResponse.findOne({ surveyId: id, studentId });
 
     res.json({
@@ -125,10 +113,6 @@ export const getSurveyById = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * RESPOND TO SURVEY / ANSWER QUESTIONS
- * POST /api/student/surveys/:id/respond
- */
 export const respondToSurvey = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -149,13 +133,11 @@ export const respondToSurvey = async (req: Request, res: Response) => {
         return String(value ?? '');
       });
 
-    // Check if survey exists
     const survey = await Survey.findById(id);
     if (!survey) {
       return res.status(404).json({ success: false, message: 'Survey not found' });
     }
 
-    // Check if already responded
     const existingResponse = await SurveyResponse.findOne({ surveyId: id, studentId });
     if (existingResponse) {
       return res.status(400).json({ success: false, message: 'You have already responded to this survey' });
@@ -180,10 +162,6 @@ export const respondToSurvey = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET ALL RESPONSES FOR A SURVEY (Questions and Answers)
- * GET /api/student/surveys/:id/responses
- */
 export const getSurveyResponses = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -198,7 +176,6 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
 
     const survey = response.surveyId as any;
 
-    // Format questions and answers together
     const normalizedQuestions = normalizeQuestions(survey.questions);
     const questionsWithAnswers = normalizedQuestions.map((question: any, index: number) => ({
       question,
@@ -220,10 +197,6 @@ export const getSurveyResponses = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE SURVEY RESPONSE
- * PUT /api/student/surveys/:id/respond
- */
 export const updateSurveyResponse = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;

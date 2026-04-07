@@ -9,9 +9,6 @@ import Internship from '../../models/Internship';
 import Certification from '../../models/Certification';
 import Point from '../../models/Point';
 
-// ==========================================
-// TYPES
-// ==========================================
 interface ReportFilter {
   startDate?: string;
   endDate?: string;
@@ -31,7 +28,7 @@ interface ReportFilter {
   sortBy?: string;
   sortOrder?: string;
   limit?: number;
-  // Advanced Student Filters
+
   minProjects?: number;
   minInternships?: number;
   certificationName?: string;
@@ -49,13 +46,9 @@ type ReportCategory =
 
 type ReportType = 'pdf' | 'excel' | 'csv';
 
-// ==========================================
-// QUERY BUILDER
-// ==========================================
 const buildBaseQuery = (category: ReportCategory, filters: ReportFilter): any => {
   const query: any = {};
 
-  // Date filters
   if (filters.startDate || filters.endDate) {
     query.createdAt = {};
     if (filters.startDate) query.createdAt.$gte = new Date(filters.startDate);
@@ -66,35 +59,29 @@ const buildBaseQuery = (category: ReportCategory, filters: ReportFilter): any =>
     }
   }
 
-  // Department filter
   if (filters.department) {
     const depts = Array.isArray(filters.department) ? filters.department : [filters.department];
     if (depts.length > 0) query.department = { $in: depts };
   }
 
-  // Year filter
   if (filters.year) {
     const yrs = Array.isArray(filters.year) ? filters.year : [filters.year];
     if (yrs.length > 0) query.year = { $in: yrs };
   }
 
-  // Status filter (students / projects)
   if (filters.status && filters.status !== 'All') {
     if (category === 'students') query.status = filters.status;
     else if (category === 'projects') query.status = filters.status;
   }
 
-  // Designation filter
   if (filters.designation && filters.designation !== 'All') {
     query.designation = filters.designation;
   }
 
-  // Project status filter
   if (filters.projectStatus && filters.projectStatus !== 'All') {
     query.status = filters.projectStatus;
   }
 
-  // Internship filters
   if (filters.internshipType && filters.internshipType !== 'All') {
     query.type = filters.internshipType;
   }
@@ -102,7 +89,6 @@ const buildBaseQuery = (category: ReportCategory, filters: ReportFilter): any =>
     query.status = filters.internshipStatus;
   }
 
-  // Certification filters
   if (filters.certificationStatus && filters.certificationStatus !== 'All') {
     query.status = filters.certificationStatus;
   }
@@ -110,7 +96,6 @@ const buildBaseQuery = (category: ReportCategory, filters: ReportFilter): any =>
     query.platform = filters.platform;
   }
 
-  // Mentor filter
   if (filters.mentorId) {
     query.mentorId = filters.mentorId;
   }
@@ -118,9 +103,6 @@ const buildBaseQuery = (category: ReportCategory, filters: ReportFilter): any =>
   return query;
 };
 
-// ==========================================
-// ADVANCED STUDENT ID FILTERING
-// ==========================================
 const getAdvancedStudentIds = async (filters: ReportFilter): Promise<any[] | null> => {
   let filteredIds: Set<string> | null = null;
 
@@ -135,7 +117,6 @@ const getAdvancedStudentIds = async (filters: ReportFilter): Promise<any[] | nul
     }
   };
 
-  // Min projects completed
   if (filters.minProjects && filters.minProjects > 0) {
     const agg = await Project.aggregate([
       { $match: { status: 'Completed' } },
@@ -145,7 +126,6 @@ const getAdvancedStudentIds = async (filters: ReportFilter): Promise<any[] | nul
     intersect(agg.map((a) => a._id));
   }
 
-  // Min internships approved
   if (filters.minInternships && filters.minInternships > 0) {
     const agg = await Internship.aggregate([
       { $match: { status: 'Approved' } },
@@ -155,7 +135,6 @@ const getAdvancedStudentIds = async (filters: ReportFilter): Promise<any[] | nul
     intersect(agg.map((a) => a._id));
   }
 
-  // Certification by name/platform
   if (filters.certificationName && filters.certificationName.trim()) {
     const regex = new RegExp(filters.certificationName.trim(), 'i');
     const certs = await Certification.find({
@@ -165,7 +144,6 @@ const getAdvancedStudentIds = async (filters: ReportFilter): Promise<any[] | nul
     intersect(ids);
   }
 
-  // Top N by total points
   if (filters.topNPoints && filters.topNPoints > 0) {
     const agg = await Point.aggregate([
       { $group: { _id: '$studentId', total: { $sum: '$points' } } },
@@ -179,13 +157,9 @@ const getAdvancedStudentIds = async (filters: ReportFilter): Promise<any[] | nul
   return [...filteredIds];
 };
 
-// ==========================================
-// DATA FETCHER
-// ==========================================
 const getReportData = async (category: ReportCategory, filters: ReportFilter) => {
   const baseQuery = buildBaseQuery(category, filters);
 
-  // Apply advanced student ID filters (only for student-related categories)
   const studentRelated =
     category === 'students' ||
     category === 'performance' ||
@@ -206,7 +180,6 @@ const getReportData = async (category: ReportCategory, filters: ReportFilter) =>
     }
   }
 
-  // Sort field
   let sortField = filters.sortBy || 'createdAt';
   if ((category === 'students' || category === 'mentors') && sortField === 'name') {
     sortField = 'firstName';
@@ -306,9 +279,6 @@ const getReportData = async (category: ReportCategory, filters: ReportFilter) =>
   return { data, totalRecords };
 };
 
-// ==========================================
-// PDF GENERATOR
-// ==========================================
 const generatePDF = (data: any[], category: ReportCategory, filters: ReportFilter): Promise<Buffer> => {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50 });
@@ -318,13 +288,11 @@ const generatePDF = (data: any[], category: ReportCategory, filters: ReportFilte
     doc.on('end', () => resolve(Buffer.concat(buffers)));
     doc.on('error', reject);
 
-    // Header
     doc.fontSize(22).font('Helvetica-Bold').text('ProgressIQ Report', { align: 'center' });
     doc.fontSize(14).font('Helvetica').text(`Category: ${category.toUpperCase()}`, { align: 'center' });
     doc.fontSize(11).text(`Generated: ${moment().format('DD MMM YYYY, HH:mm')}`, { align: 'center' });
     doc.moveDown(2);
 
-    // Applied filters (skip blanks and 'All')
     const activeFilters = Object.entries(filters).filter(
       ([, v]) => v !== undefined && v !== null && v !== '' && v !== 'All' && v !== false
     );
@@ -337,7 +305,6 @@ const generatePDF = (data: any[], category: ReportCategory, filters: ReportFilte
       doc.moveDown(1.5);
     }
 
-    // Data
     if (category === 'comprehensive') {
       data.forEach((section: any) => {
         doc.addPage();
@@ -374,14 +341,10 @@ const generatePDF = (data: any[], category: ReportCategory, filters: ReportFilte
   });
 };
 
-// ==========================================
-// EXCEL GENERATOR
-// ==========================================
 const generateExcel = async (data: any[], category: ReportCategory, filters: ReportFilter): Promise<Buffer> => {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'ProgressIQ';
 
-  // Metadata sheet
   const metaSheet = workbook.addWorksheet('Report Info');
   metaSheet.addRow(['ProgressIQ Report']);
   metaSheet.addRow(['Category', category]);
@@ -506,7 +469,6 @@ const generateExcel = async (data: any[], category: ReportCategory, filters: Rep
       });
     }
 
-    // Auto-fit columns
     ws.columns.forEach((col) => {
       let maxLen = 10;
       col.eachCell?.({ includeEmpty: true }, (cell) => {
@@ -521,9 +483,6 @@ const generateExcel = async (data: any[], category: ReportCategory, filters: Rep
   return Buffer.from(buffer);
 };
 
-// ==========================================
-// CSV GENERATOR (in-memory)
-// ==========================================
 const generateCSV = (data: any[], category: ReportCategory): string => {
   const escape = (v: any) => {
     if (v === null || v === undefined) return '';
@@ -593,9 +552,6 @@ const generateCSV = (data: any[], category: ReportCategory): string => {
   return lines.join('\n');
 };
 
-// ==========================================
-// MAIN GENERATE REPORT — INSTANT STREAM
-// ==========================================
 export const generateReport = async (req: Request, res: Response) => {
   try {
     const { type, category, filter = {}, options = {} }: {
@@ -642,7 +598,6 @@ export const generateReport = async (req: Request, res: Response) => {
         return res.status(400).json({ success: false, message: 'Invalid report type' });
     }
 
-    // Stream directly to client — NO disk writes, NO DB saves
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
@@ -657,15 +612,12 @@ export const generateReport = async (req: Request, res: Response) => {
   }
 };
 
-// ==========================================
-// PREVIEW REPORT
-// ==========================================
 export const previewReport = async (req: Request, res: Response) => {
   try {
     const { category, filter = {} }: { category: ReportCategory; filter: ReportFilter } = req.body;
 
     const previewFilter: ReportFilter = { ...filter };
-    // Default to all time if no date filter given
+
     const { data, totalRecords } = await getReportData(category, previewFilter);
 
     let sampleData: any;
@@ -697,9 +649,6 @@ export const previewReport = async (req: Request, res: Response) => {
   }
 };
 
-// ==========================================
-// OPTION FETCHERS
-// ==========================================
 export const getDepartments = async (_req: Request, res: Response) => {
   try {
     const departments = await Student.distinct('department');

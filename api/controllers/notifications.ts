@@ -12,16 +12,16 @@ import { NotificationService } from '../services/notificationService';
 export const createNotification = async (req: Request, res: Response) => {
   try {
     const { userId, title, message, type = 'INFO', link, sendEmail = false } = req.body;
-    
+
     const notification = await NotificationService.send({
       userId,
-      title: title || 'New Notification', // Fallback title
+      title: title || 'New Notification',
       message,
       type,
       link,
       sendEmail
     });
-    
+
     res.status(201).json({ success: true, notification });
   } catch (error: any) {
     console.error('Error creating notification:', error);

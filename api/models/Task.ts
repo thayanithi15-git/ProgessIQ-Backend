@@ -13,9 +13,9 @@ const taskSchema = new mongoose.Schema({
     enum: ['PENDING', 'IN_PROGRESS', 'SUBMITTED', 'APPROVED', 'REJECTED'],
     default: 'PENDING'
   },
-  // Student's completion note submitted when they mark as done
+
   submissionNote: { type: String },
-  // Mentor verification fields
+
   verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Mentor' },
   verificationNote: { type: String },
   pointsAwarded: { type: Number, default: 0 },

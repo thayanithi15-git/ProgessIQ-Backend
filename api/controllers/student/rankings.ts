@@ -3,11 +3,6 @@ import Point from '../../models/Point';
 import mongoose from 'mongoose';
 import { Request, Response } from 'express';
 
-/**
- * GET ALL RANKINGS (Leaderboard)
- * GET /api/student/rankings
- * Query: department, limit, skip
- */
 export const getAllRankings = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -164,10 +159,6 @@ export const getAllRankings = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET STUDENT's RANKING POSITION
- * GET /api/student/rankings/position
- */
 export const getStudentRanking = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -177,13 +168,10 @@ export const getStudentRanking = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
-    // Get total students
     const totalStudents = await Student.countDocuments();
 
-    // Get students in department
     const departmentStudents = await Student.countDocuments({ department: student.department });
 
-    // Get points from Point model
     const pointsData = await Point.aggregate([
       {
         $match: {
@@ -199,7 +187,6 @@ export const getStudentRanking = async (req: Request, res: Response) => {
     ]);
     const totalPoints = pointsData[0]?.totalPoints || 0;
 
-    // Get students ahead based on points
     const overallAheadData = await Point.aggregate([
       { $group: { _id: '$studentId', points: { $sum: '$points' } } },
       { $match: { points: { $gt: totalPoints } } },
@@ -253,10 +240,6 @@ export const getStudentRanking = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET DEPARTMENT LEADERBOARD
- * GET /api/student/rankings/department
- */
 export const getDepartmentRankings = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;

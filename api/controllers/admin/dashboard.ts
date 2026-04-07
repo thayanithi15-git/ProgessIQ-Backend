@@ -7,11 +7,6 @@ import Certification from '../../models/Certification';
 import Point from '../../models/Point';
 import DailyActivityLog from '../../models/DailyActivityLog';
 
-/**
- * GET /api/admin/stats
- * Query params: none
- * Returns: Overall statistics
- */
 export const getAdminStats = async (req: Request, res: Response) => {
   try {
     const totalStudents = await Student.countDocuments();
@@ -20,7 +15,6 @@ export const getAdminStats = async (req: Request, res: Response) => {
     const totalInternships = await Internship.countDocuments();
     const totalCertifications = await Certification.countDocuments();
 
-    // Students above average points
     const agg = await Point.aggregate([
       { $group: { _id: '$studentId', points: { $sum: '$points' } } },
       { $group: { _id: null, avgPoints: { $avg: '$points' } } }
@@ -53,11 +47,6 @@ export const getAdminStats = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/top-students
- * Query params: limit (default: 10)
- * Returns: Top students with full details
- */
 export const getTopStudents = async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
@@ -114,7 +103,7 @@ export const getTopStudents = async (req: Request, res: Response) => {
       },
       {
         $project: {
-          rank: { $literal: 0 }, // Will be set in post-processing
+          rank: { $literal: 0 },
           name: {
             $concat: [
               '$studentInfo.firstName',
@@ -165,7 +154,6 @@ export const getTopStudents = async (req: Request, res: Response) => {
       }
     ]);
 
-    // Add rank position
     const rankedStudents = topStudents.map((student, index) => ({
       ...student,
       rank: index + 1
@@ -180,11 +168,6 @@ export const getTopStudents = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/charts/activities
- * Query params: filter (week|month|year), startDate, endDate
- * Returns: Daily activity hours data for line chart
- */
 export const getActivityChart = async (req: Request, res: Response) => {
   try {
     const { filter = 'month', startDate, endDate } = req.query;
@@ -245,11 +228,6 @@ export const getActivityChart = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/charts/points-trend
- * Query params: filter (week|month|year)
- * Returns: Points awarded over time (line chart)
- */
 export const getPointsTrendChart = async (req: Request, res: Response) => {
   try {
     const { filter = 'month' } = req.query;
@@ -303,11 +281,6 @@ export const getPointsTrendChart = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/charts/department-distribution
- * Query params: none
- * Returns: Student distribution by department (pie chart)
- */
 export const getDepartmentDistribution = async (req: Request, res: Response) => {
   try {
     const distribution = await Student.aggregate([
@@ -342,11 +315,6 @@ export const getDepartmentDistribution = async (req: Request, res: Response) => 
   }
 };
 
-/**
- * GET /api/admin/charts/year-distribution
- * Query params: none
- * Returns: Student distribution by year (pie chart)
- */
 export const getYearDistribution = async (req: Request, res: Response) => {
   try {
     const distribution = await Student.aggregate([
@@ -381,11 +349,6 @@ export const getYearDistribution = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/charts/project-status
- * Query params: filter (week|month|year|all)
- * Returns: Project status distribution (pie chart)
- */
 export const getProjectStatusChart = async (req: Request, res: Response) => {
   try {
     const { filter = 'all' } = req.query;
@@ -440,11 +403,6 @@ export const getProjectStatusChart = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/charts/internship-types
- * Query params: none
- * Returns: Internship type distribution (pie chart)
- */
 export const getInternshipTypesChart = async (req: Request, res: Response) => {
   try {
     const typeData = await Internship.aggregate([
@@ -478,11 +436,6 @@ export const getInternshipTypesChart = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/charts/monthly-submissions
- * Query params: filter (6months|year|all)
- * Returns: Monthly submission counts for projects, internships, certifications (multi-line chart)
- */
 export const getMonthlySubmissions = async (req: Request, res: Response) => {
   try {
     const { filter = '6months' } = req.query;
@@ -500,7 +453,6 @@ export const getMonthlySubmissions = async (req: Request, res: Response) => {
       dateFilter = { createdAt: { $gte: yearAgo } };
     }
 
-    // Projects by month
     const projects = await Project.aggregate([
       { $match: dateFilter },
       {
@@ -514,7 +466,6 @@ export const getMonthlySubmissions = async (req: Request, res: Response) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // Internships by month
     const internships = await Internship.aggregate([
       { $match: dateFilter },
       {
@@ -528,7 +479,6 @@ export const getMonthlySubmissions = async (req: Request, res: Response) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // Certifications by month
     const certifications = await Certification.aggregate([
       { $match: dateFilter },
       {
@@ -542,7 +492,6 @@ export const getMonthlySubmissions = async (req: Request, res: Response) => {
       { $sort: { _id: 1 } }
     ]);
 
-    // Merge all months
     const allMonths = new Set([
       ...projects.map(p => p._id),
       ...internships.map(i => i._id),
@@ -566,11 +515,6 @@ export const getMonthlySubmissions = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/admin/charts/points-by-source
- * Query params: filter (week|month|year|all)
- * Returns: Points distribution by source (bar chart)
- */
 export const getPointsBySource = async (req: Request, res: Response) => {
   try {
     const { filter = 'month' } = req.query;

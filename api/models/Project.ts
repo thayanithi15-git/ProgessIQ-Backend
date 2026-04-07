@@ -7,7 +7,7 @@ const projectSchema = new mongoose.Schema({
   description: { type: String, required: true },
   githubLink: { type: String },
   websiteLink: { type: String },
-  dueDate: { type: Date }, // Added for cron reminders
+  dueDate: { type: Date },
   completedAt: { type: Date },
   status: {
     type: String,
@@ -15,11 +15,11 @@ const projectSchema = new mongoose.Schema({
     enum: ['PENDING', 'IN_PROGRESS', 'SUBMITTED', 'APPROVED', 'REJECTED'],
     default: 'PENDING'
   },
-  // Mentor-created vs student-uploaded
+
   createdByMentor: { type: Boolean, default: false },
-  // Student's submission note when reporting completion
+
   submissionNote: { type: String },
-  // Mentor verification
+
   verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Mentor' },
   verificationNote: { type: String },
   pointsAwarded: { type: Number, default: 0 },

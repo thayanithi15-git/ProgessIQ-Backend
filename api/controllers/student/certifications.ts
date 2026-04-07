@@ -2,10 +2,6 @@ import Certification from '../../models/Certification';
 import Feedback from '../../models/Feedback';
 import { Request, Response } from 'express';
 
-/**
- * CREATE CERTIFICATION
- * POST /api/student/certifications
- */
 export const createCertification = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -38,10 +34,6 @@ export const createCertification = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET ALL CERTIFICATIONS
- * GET /api/student/certifications
- */
 export const listCertifications = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -88,10 +80,6 @@ export const listCertifications = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET SINGLE CERTIFICATION
- * GET /api/student/certifications/:id
- */
 export const getCertificationById = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -126,10 +114,6 @@ export const getCertificationById = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE CERTIFICATION
- * PUT /api/student/certifications/:id
- */
 export const updateCertification = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -161,10 +145,6 @@ export const updateCertification = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * DELETE CERTIFICATION
- * DELETE /api/student/certifications/:id
- */
 export const deleteCertification = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -192,10 +172,6 @@ export const deleteCertification = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET CERTIFICATION FEEDBACK
- * GET /api/student/certifications/:id/feedback
- */
 export const getCertificationFeedback = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;

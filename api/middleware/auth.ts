@@ -12,9 +12,9 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     const payload = verifyToken(token) as { id: string; role: string };
     const user = await User.findById(payload.id);
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
-    
+
     let userData: any = { id: user._id.toString(), role: user.role, email: user.email };
-    
+
     if (user.role === 'STUDENT') {
       const student = await Student.findOne({ userId: user._id });
       if (student) {
@@ -26,7 +26,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         userData.mentorId = mentor._id.toString();
       }
     }
-    
+
     (req as any).user = userData;
     next();
   } catch (err) {

@@ -6,13 +6,10 @@ import dotenv from "dotenv";
 import mongoSanitize from "express-mongo-sanitize";
 import mongoose from "mongoose";
 
-// Load env FIRST
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// ================= MIDDLEWARE =================
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -46,7 +43,6 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-
 const connectDB = async () => {
   try {
     const uri = process.env.MONGO_URI;
@@ -55,7 +51,6 @@ const connectDB = async () => {
       throw new Error("❌ MONGO_URI environment variable is required");
     }
 
-    // Prevent multiple connections in dev / serverless
     if (mongoose.connection.readyState >= 1) {
       return;
     }
@@ -74,7 +69,6 @@ const connectDB = async () => {
   }
 };
 
-// Connection events
 mongoose.connection.on("error", (err) =>
   console.error("❌ MongoDB runtime error:", err.message)
 );
@@ -87,11 +81,8 @@ mongoose.connection.on("connected", () =>
   console.log("🟢 MongoDB connection active")
 );
 
-// ================= ROUTES =================
-
 app.get("/", (_, res) => res.send("API is running"));
 
-// Import AFTER middleware
 import { securityLogger } from "./middleware/security";
 app.use(securityLogger);
 
@@ -108,7 +99,6 @@ app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationsRoutes);
 import { processCronReminders } from "./services/cronService";
 
-// CRON ENDPOINT - Triggered by GitHub Actions
 app.get("/cron/send-reminders", async (req, res) => {
   const authHeader = req.headers['authorization'];
   const secret = req.query.secret || (authHeader ? authHeader.replace('Bearer ', '') : null);
@@ -117,10 +107,8 @@ app.get("/cron/send-reminders", async (req, res) => {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  // Respond immediately to avoid Vercel timeout (10s)
   res.status(200).json({ message: "Reminder process started in background" });
 
-  // Process in background
   try {
     console.log("[Cron] Manual trigger received. Processing...");
     await processCronReminders();
@@ -133,11 +121,8 @@ app.get("/cron/send-reminders", async (req, res) => {
 import { errorHandler } from "./middleware/errorHandler";
 app.use(errorHandler);
 
-// ================= START SERVER =================
-
 import { startCronJobs } from './services/cronService';
 
-// Only start listener in LOCAL — not in Vercel
 if (process.env.NODE_ENV !== "production") {
   connectDB().then(() => {
     startCronJobs();
@@ -146,7 +131,7 @@ if (process.env.NODE_ENV !== "production") {
     });
   });
 } else {
-  // For Vercel – connect immediately
+
   connectDB();
 }
 

@@ -11,15 +11,10 @@ import Feedback from '../../models/Feedback';
 import Internship from '../../models/Internship';
 import mongoose from 'mongoose';
 
-/**
- * GET /api/student/dashboard
- * Returns complete student dashboard with stats, charts, and heatmap data
- */
 export const getStudentDashboard = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
 
-    // Get student basic info
     const student = await Student.findById(studentId).populate({
       path: 'userId',
       select: 'email'
@@ -29,13 +24,11 @@ export const getStudentDashboard = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
-    // Get mentor info
     const mentor = await Mentor.findOne({ studentId }).populate({
       path: 'userId',
       select: 'email firstName lastName'
     });
 
-    // Get projects stats
     const projects = await Project.find({ studentId });
     const projectStats = {
       total: projects.length,
@@ -44,7 +37,6 @@ export const getStudentDashboard = async (req: Request, res: Response) => {
       rejected: projects.filter(p => p.status === 'REJECTED').length
     };
 
-    // Get tasks stats
     const tasks = await Task.find({ studentId });
     const taskStats = {
       total: tasks.length,
@@ -53,7 +45,6 @@ export const getStudentDashboard = async (req: Request, res: Response) => {
       overdue: tasks.filter(t => t.dueDate < new Date() && t.status !== 'APPROVED').length
     };
 
-    // Get certifications stats
     const certifications = await Certification.find({ studentId });
     const certificationStats = {
       total: certifications.length,
@@ -62,7 +53,6 @@ export const getStudentDashboard = async (req: Request, res: Response) => {
       rejected: certifications.filter(c => c.status === 'REJECTED').length
     };
 
-    // Get internships stats
     const internships = await Internship.find({ studentId });
     const internshipStats = {
       total: internships.length,
@@ -71,39 +61,30 @@ export const getStudentDashboard = async (req: Request, res: Response) => {
       rejected: internships.filter(i => i.status === 'REJECTED').length
     };
 
-    // Get points and activity
     const pointsData = await Point.find({ studentId }).sort({ awardedOn: -1 });
     const calculatedPoints = pointsData.reduce((sum, p) => sum + p.points, 0);
 
-    // Sync rewardPoints if discrepant
     if (student.rewardPoints !== calculatedPoints) {
       await Student.findByIdAndUpdate(studentId, { rewardPoints: calculatedPoints });
       student.rewardPoints = calculatedPoints;
     }
     const totalPoints = student.rewardPoints;
 
-
-    // Get ranking
     const ranking = await Ranking.findOne({ studentId });
 
-    // Get points heatmap data for current year
     const currentYear = new Date().getFullYear();
     const activityData = await getPointsHeatmapData(studentId, currentYear);
 
-    // Get activity logs for stats
     const activityLogs = await DailyActivityLog.find({ studentId });
     const totalHoursSpent = activityLogs.reduce((sum, log) => sum + log.hoursSpent, 0);
 
-    // Get recent feedback
     const recentFeedback = await Feedback.find({ studentId })
       .populate('mentorId', 'firstName lastName')
       .sort({ createdAt: -1 })
       .limit(5);
 
-    // Get monthly activity data for chart
     const monthlyActivity = await getMonthlyActivityData(studentId);
 
-    // Get points by source breakdown
     const pointsBySource = await getPointsBySourceBreakdown(studentId);
 
     res.json({
@@ -178,9 +159,6 @@ export const getStudentDashboard = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Generate points heatmap data for a year
- */
 async function getPointsHeatmapData(studentId: string, year: number): Promise<any[]> {
   const start = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
   const end = new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0, 0));
@@ -222,9 +200,6 @@ async function getPointsHeatmapData(studentId: string, year: number): Promise<an
   });
 }
 
-/**
- * Get monthly activity data for line chart
- */
 async function getMonthlyActivityData(studentId: string): Promise<any[]> {
   const logs = await DailyActivityLog.find({ studentId });
   const monthlyMap: { [key: string]: number } = {};
@@ -243,9 +218,6 @@ async function getMonthlyActivityData(studentId: string): Promise<any[]> {
     }));
 }
 
-/**
- * Get points by source breakdown
- */
 async function getPointsBySourceBreakdown(studentId: string): Promise<any[]> {
   const breakdown = await Point.aggregate([
     { $match: { studentId: new mongoose.Types.ObjectId(studentId) } },
@@ -283,10 +255,6 @@ function getDateFilter(filter: string): any {
   return {};
 }
 
-/**
- * GET /api/student/charts/points-trend?filter=week|month|year
- * Returns student points trend grouped by day
- */
 export const getPointsTrendChart = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -326,10 +294,6 @@ export const getPointsTrendChart = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/student/charts/monthly-activity?filter=week|month|year
- * Returns student activity grouped by day
- */
 export const getMonthlyActivityChart = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -367,10 +331,6 @@ export const getMonthlyActivityChart = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/student/charts/task-completion
- * Returns task status totals
- */
 export const getTaskCompletionChart = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -396,10 +356,6 @@ export const getTaskCompletionChart = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/student/activity-logs
- * Get all activity logs for the student
- */
 export const getActivityLogs = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -436,10 +392,6 @@ export const getActivityLogs = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * POST /api/student/activity-logs
- * Submit daily activity log
- */
 export const submitActivityLog = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -468,10 +420,6 @@ export const submitActivityLog = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET /api/student/heatmap?year=YYYY
- * Returns points heatmap data grouped by day for the given year
- */
 export const getHeatmapData = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;

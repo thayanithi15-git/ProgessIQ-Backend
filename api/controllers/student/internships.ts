@@ -3,10 +3,6 @@ import Feedback from '../../models/Feedback';
 import Student from '../../models/Student';
 import { Request, Response } from 'express';
 
-/**
- * CREATE INTERNSHIP
- * POST /api/student/internships
- */
 export const createInternship = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
@@ -50,10 +46,6 @@ export const createInternship = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET ALL INTERNSHIPS
- * GET /api/student/internships
- */
 export const listInternships = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -106,10 +98,6 @@ export const listInternships = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET SINGLE INTERNSHIP
- * GET /api/student/internships/:id
- */
 export const getInternshipById = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -152,10 +140,6 @@ export const getInternshipById = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE INTERNSHIP
- * PUT /api/student/internships/:id
- */
 export const updateInternship = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -187,10 +171,6 @@ export const updateInternship = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * DELETE INTERNSHIP
- * DELETE /api/student/internships/:id
- */
 export const deleteInternship = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -218,10 +198,6 @@ export const deleteInternship = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET INTERNSHIP FEEDBACK
- * GET /api/student/internships/:id/feedback
- */
 export const getInternshipFeedback = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;

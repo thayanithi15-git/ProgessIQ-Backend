@@ -4,12 +4,8 @@ import Project from '../models/Project';
 import Student from '../models/Student';
 import { NotificationService } from './notificationService';
 
-/**
- * Core logic to check for tasks/projects due in a specific number of days
- * and send notifications.
- */
 export async function processCronReminders() {
-  const daysToCheck = [1, 2]; // Check for 1 day and 2 days before
+  const daysToCheck = [1, 2];
   console.log(`[CronService] Starting reminder process for: ${daysToCheck.join(', ')} day(s) out.`);
 
   for (const daysOffset of daysToCheck) {
@@ -23,20 +19,18 @@ export async function processCronReminders() {
       const nextDay = new Date(targetDate);
       nextDay.setDate(targetDate.getDate() + 1);
 
-      // Find Pending Tasks due on the target date
       const upcomingTasks = await Task.find({
         status: { $in: ['PENDING', 'IN_PROGRESS'] },
         dueDate: { $gte: targetDate, $lt: nextDay }
       });
 
-      // Find Pending Projects due on the target date
       const upcomingProjects = await Project.find({
         status: { $in: ['PENDING', 'IN_PROGRESS'] },
         dueDate: { $gte: targetDate, $lt: nextDay }
       });
 
       const items = [
-        ...upcomingTasks.map(t => ({ ...t.toObject(), type: 'TASK' })), 
+        ...upcomingTasks.map(t => ({ ...t.toObject(), type: 'TASK' })),
         ...upcomingProjects.map(p => ({ ...p.toObject(), type: 'PROJECT' }))
       ];
 
@@ -57,7 +51,7 @@ export async function processCronReminders() {
         for (const item of userItems) {
           const title = item.title;
           const msg = `Urgent Reminder: Your ${item.type.toLowerCase()} "${title}" is due ${daysOffset === 1 ? 'tomorrow' : 'in 2 days'}. Please complete it to stay on track!`;
-          
+
           await NotificationService.send({
             userId: st.userId.toString(),
             title: `${item.type === 'PROJECT' ? 'Project' : 'Task'} Deadline: ${title}`,
@@ -72,15 +66,15 @@ export async function processCronReminders() {
       console.error(`[CronService] Failed to process ${daysOffset} day reminders:`, error);
     }
   }
-  
+
   console.log('[CronService] Reminder process completed.');
 }
 
 export const startCronJobs = () => {
-  // Local/Dev environment: Run every morning at 8:00 AM
+
   cron.schedule('0 8 * * *', async () => {
     await processCronReminders();
   });
-  
+
   console.log('Cron jobs scheduled (Local only).');
 };

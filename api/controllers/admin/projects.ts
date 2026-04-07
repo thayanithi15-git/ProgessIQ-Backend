@@ -14,7 +14,6 @@ export const listProjects = async (req: Request, res: Response) => {
 
   let query = Project.find(q).populate('studentId mentorId');
 
-  // sorting support, e.g. sort=completedAt:desc or title:asc
   if (sort) {
     const [field, dir] = sort.split(':');
     const order = dir === 'desc' ? -1 : 1;

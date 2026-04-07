@@ -8,9 +8,6 @@ import { NotificationService } from '../../services/notificationService';
 
 const getMentorId = (req: Request) => (req as any).user.mentorId || (req as any).user.id;
 
-// ========================
-// LIST TASKS
-// ========================
 export const listMentorTasks = async (req: Request, res: Response) => {
   try {
     const mentorId = getMentorId(req);
@@ -132,9 +129,6 @@ export const listMentorTasks = async (req: Request, res: Response) => {
   }
 };
 
-// ========================
-// GET TASK BY ID
-// ========================
 export const getMentorTaskById = async (req: Request, res: Response) => {
   try {
     const mentorId = getMentorId(req);
@@ -175,9 +169,6 @@ export const getMentorTaskById = async (req: Request, res: Response) => {
   }
 };
 
-// ========================
-// CREATE TASK (assign to students)
-// ========================
 export const createMentorTask = async (req: Request, res: Response) => {
   try {
     const mentorId = getMentorId(req);
@@ -214,7 +205,6 @@ export const createMentorTask = async (req: Request, res: Response) => {
 
     const created = await Task.insertMany(docs);
 
-    // Notify students
     const studentsToNotify = await Student.find({ _id: { $in: validTargets } });
     for (const st of studentsToNotify) {
       if (st.userId) {
@@ -234,9 +224,6 @@ export const createMentorTask = async (req: Request, res: Response) => {
   }
 };
 
-// ========================
-// UPDATE TASK
-// ========================
 export const updateMentorTask = async (req: Request, res: Response) => {
   try {
     const mentorId = getMentorId(req);
@@ -262,9 +249,6 @@ export const updateMentorTask = async (req: Request, res: Response) => {
   }
 };
 
-// ========================
-// DELETE TASK
-// ========================
 export const deleteMentorTask = async (req: Request, res: Response) => {
   try {
     const mentorId = getMentorId(req);
@@ -286,9 +270,6 @@ export const deleteMentorTask = async (req: Request, res: Response) => {
   }
 };
 
-// ========================
-// VERIFY TASK (approve/reject + award points)
-// ========================
 export const verifyMentorTask = async (req: Request, res: Response) => {
   try {
     const mentorId = getMentorId(req);
@@ -320,7 +301,6 @@ export const verifyMentorTask = async (req: Request, res: Response) => {
       { new: true }
     );
 
-    // Award points if approved
     if (pointsToAward > 0) {
       await Point.create({
         studentId: task.studentId,
@@ -333,7 +313,6 @@ export const verifyMentorTask = async (req: Request, res: Response) => {
       await Student.findByIdAndUpdate(task.studentId, { $inc: { rewardPoints: pointsToAward } });
     }
 
-    // Notify student
     const st = await Student.findById(task.studentId);
     if (st && st.userId) {
       await NotificationService.send({

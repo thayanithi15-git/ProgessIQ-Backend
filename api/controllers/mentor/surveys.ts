@@ -23,12 +23,11 @@ export const createSurvey = async (req: Request, res: Response) => {
     });
     await survey.save();
 
-    // Notify all assigned students
     const mappings = await MentorStudentMapping.find({ mentorId, isActive: true }).select('studentId');
     if (mappings.length > 0) {
       const studentIds = mappings.map((m: any) => m.studentId);
       const studentsToNotify = await Student.find({ _id: { $in: studentIds } });
-      
+
       for (const st of studentsToNotify) {
         if (st.userId) {
           await NotificationService.send({

@@ -7,11 +7,6 @@ import { NotificationService } from '../../services/notificationService';
 
 const getMentorId = (req: Request) => (req as any).user.mentorId || (req as any).user.id;
 
-/**
- * Manually notify students about an upcoming due date / reminder
- * POST /api/mentor/notify
- * Body: { type: 'TASK' | 'PROJECT', entityId: string, message: string }
- */
 export const notifyStudents = async (req: Request, res: Response) => {
   try {
     const mentorId = getMentorId(req);
@@ -25,29 +20,25 @@ export const notifyStudents = async (req: Request, res: Response) => {
     let titlePrefix = '';
 
     if (type === 'TASK') {
-      // Find the specific task (which might be assigned to multiple students as separate documents)
-      // Wait, tasks are separate documents per student. So if we want to notify all students for a specific "task title" 
-      // or we just pass the single task ID and notify that one student.
-      // Usually, mass notify implies finding all tasks with the same mentor, title, and due date.
-      // Let's assume entityId is one of the tasks, we can extract its title and find peers.
+
       const refTask = await Task.findOne({ _id: entityId, mentorId });
       if (!refTask) return res.status(404).json({ success: false, message: 'Task not found' });
-      
-      entities = await Task.find({ 
-        mentorId, 
-        title: refTask.title, 
+
+      entities = await Task.find({
+        mentorId,
+        title: refTask.title,
         dueDate: refTask.dueDate,
-        status: { $in: ['PENDING', 'IN_PROGRESS', 'REJECTED'] } // only notify active ones
+        status: { $in: ['PENDING', 'IN_PROGRESS', 'REJECTED'] }
       });
       titlePrefix = `Reminder: Task "${refTask.title}"`;
-      
+
     } else {
       const refProj = await Project.findOne({ _id: entityId, mentorId });
       if (!refProj) return res.status(404).json({ success: false, message: 'Project not found' });
 
-      entities = await Project.find({ 
-        mentorId, 
-        title: refProj.title, 
+      entities = await Project.find({
+        mentorId,
+        title: refProj.title,
         status: { $in: ['PENDING', 'IN_PROGRESS', 'REJECTED'] }
       });
       titlePrefix = `Reminder: Project "${refProj.title}"`;

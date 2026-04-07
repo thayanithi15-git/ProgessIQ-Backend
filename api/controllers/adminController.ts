@@ -45,7 +45,6 @@ export const getStudents = async (req: Request, res: Response) => {
   if (req.query.maxArrears) filter.arrearCount = { $lte: parseInt(req.query.maxArrears as string) };
   if (req.query.goodAt) filter.goodAt = { $in: (req.query.goodAt as string).split(',').map(s => s.trim()) };
 
-  // ----- Name search (across firstName and lastName) -----
   if (name) {
     filter.$or = [
       { firstName: { $regex: name, $options: "i" } },
@@ -53,7 +52,6 @@ export const getStudents = async (req: Request, res: Response) => {
     ];
   }
 
-  // ----- Email search from User collection -----
   if (email) {
     const users = await User.find({
       email: { $regex: email, $options: "i" },
@@ -72,7 +70,6 @@ export const getStudents = async (req: Request, res: Response) => {
 
   const studentIds = students.map((s) => s._id);
 
-  // Grouped points for real-time accuracy
   const pointsAgg = await require('../models/Point').default.aggregate([
     { $match: { studentId: { $in: studentIds } } },
     { $group: { _id: '$studentId', points: { $sum: '$points' } } }
@@ -133,7 +130,6 @@ export const createMentor = async (req: Request, res: Response) => {
   res.status(201).json({ mentor });
 };
 
-
 export const getMentors = async (req: Request, res: Response) => {
   try {
     const {
@@ -191,13 +187,13 @@ export const deleteMentor = async (req: Request, res: Response) => {
   const { id } = req.params;
   const mentor = await Mentor.findByIdAndDelete(id);
   if (!mentor) return res.status(404).json({ message: 'Not found' });
-  // optionally reassign mappings
+
   await MentorStudentMapping.deleteMany({ mentorId: mentor._id });
   res.json({ message: 'Deleted' });
 };
 
 export const mapStudentsToMentor = async (req: Request, res: Response) => {
-  const { mentorId, studentIds } = req.body; // studentIds: []
+  const { mentorId, studentIds } = req.body;
   if (!mentorId || !Array.isArray(studentIds)) return res.status(400).json({ message: 'Invalid payload' });
 
   const mappings = studentIds.map((sId: string) => ({ mentorId, studentId: sId }));
@@ -207,7 +203,7 @@ export const mapStudentsToMentor = async (req: Request, res: Response) => {
 
 export const bulkUploadStudents = async (req: Request, res: Response) => {
   try {
-    const { students } = req.body; // Array of student objects from frontend
+    const { students } = req.body;
     if (!Array.isArray(students)) return res.status(400).json({ message: 'Invalid payload' });
 
     const results = {

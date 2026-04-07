@@ -13,31 +13,26 @@ export const listCertifications = async (req: Request, res: Response) => {
 
     const q: any = {};
 
-    // ───── SEARCH ─────
     if (search) {
       q.title = { $regex: search, $options: "i" };
     }
 
-    // ───── STATUS FILTER ─────
     if (status) {
       q.status = status;
     }
 
-    // ───── BASE QUERY ─────
     let query = Certification.find(q);
 
-    // ───── SORTING ─────
     if (sort) {
       const [field, dir] = sort.split(":");
       const order = dir === "desc" ? -1 : 1;
 
       query = query.sort({ [field]: order });
     } else {
-      // default sort
+
       query = query.sort({ createdAt: -1 });
     }
 
-    // ───── PAGINATION ─────
     const pageNum = Number(page);
     const limitNum = Number(limit);
 

@@ -2,10 +2,6 @@ import Task from '../../models/Task';
 import Feedback from '../../models/Feedback';
 import { Request, Response } from 'express';
 
-/**
- * CREATE TASK
- * POST /api/student/tasks
- */
 export const createTask = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -36,10 +32,6 @@ export const createTask = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET ALL TASKS
- * GET /api/student/tasks
- */
 export const listStudentTasks = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -56,7 +48,6 @@ export const listStudentTasks = async (req: Request, res: Response) => {
 
     const total = await Task.countDocuments(filter);
 
-    // Get feedback for each task
     const tasksWithFeedback = await Promise.all(
       tasks.map(async (task) => {
         const feedback = await Feedback.findOne({
@@ -89,10 +80,6 @@ export const listStudentTasks = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET SINGLE TASK
- * GET /api/student/tasks/:id
- */
 export const getTaskById = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -131,10 +118,6 @@ export const getTaskById = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE TASK
- * PUT /api/student/tasks/:id
- */
 export const updateTask = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -146,7 +129,6 @@ export const updateTask = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    // Allow update only if not submitted/approved
     if (['SUBMITTED', 'APPROVED'].includes(task.status)) {
       return res.status(400).json({ success: false, message: 'Cannot update a submitted or approved task' });
     }
@@ -163,10 +145,6 @@ export const updateTask = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * DELETE TASK
- * DELETE /api/student/tasks/:id
- */
 export const deleteTask = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -178,7 +156,6 @@ export const deleteTask = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    // Allow delete only if pending
     if (task.status !== 'PENDING') {
       return res.status(400).json({ success: false, message: 'Cannot delete task with this status' });
     }
@@ -195,10 +172,6 @@ export const deleteTask = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * SUBMIT/COMPLETE TASK
- * PUT /api/student/tasks/:id/complete
- */
 export const submitTaskUpdate = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -235,10 +208,6 @@ export const submitTaskUpdate = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * START TASK (mark In Progress)
- * PUT /api/student/tasks/:id/start
- */
 export const startTask = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -266,10 +235,6 @@ export const startTask = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET TASK FEEDBACK
- * GET /api/student/tasks/:id/feedback
- */
 export const getTaskFeedback = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;

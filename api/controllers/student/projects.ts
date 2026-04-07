@@ -2,10 +2,6 @@ import Project from '../../models/Project';
 import Feedback from '../../models/Feedback';
 import { Request, Response } from 'express';
 
-/**
- * CREATE PROJECT
- * POST /api/student/projects
- */
 export const createProject = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -39,21 +35,16 @@ export const createProject = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET ALL PROJECTS
- * GET /api/student/projects
- */
 export const listStudentProjects = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
     const { status, limit = 20, skip = 0 } = req.query;
 
     const filter: any = { studentId };
-    
-    // Status mapping equivalent to front-end for students
+
     if (status) {
       if (status === 'ALL') {
-        // no filter
+
       } else {
         filter.status = status;
       }
@@ -83,10 +74,6 @@ export const listStudentProjects = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET SINGLE PROJECT
- * GET /api/student/projects/:id
- */
 export const getProjectById = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -107,10 +94,6 @@ export const getProjectById = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * UPDATE PROJECT
- * PUT /api/student/projects/:id
- */
 export const updateProject = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -122,14 +105,13 @@ export const updateProject = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    // Allow update only if not approved or rejected or submitted
     if (['APPROVED', 'REJECTED', 'SUBMITTED'].includes(project.status)) {
       return res.status(400).json({ success: false, message: 'Cannot update project with this status' });
     }
 
     const updated = await Project.findByIdAndUpdate(
       id,
-      { ...req.body, status: 'PENDING' }, // Reset to pending on edit
+      { ...req.body, status: 'PENDING' },
       { new: true }
     );
 
@@ -143,10 +125,6 @@ export const updateProject = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * DELETE PROJECT
- * DELETE /api/student/projects/:id
- */
 export const deleteProject = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -158,7 +136,6 @@ export const deleteProject = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    // Allow delete only if pending and not mentor created
     if (project.status !== 'PENDING') {
       return res.status(400).json({ success: false, message: 'Cannot delete project after it has been worked on' });
     }
@@ -179,10 +156,6 @@ export const deleteProject = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * SUBMIT PROJECT UPDATE
- * PUT /api/student/projects/:id/complete
- */
 export const submitProjectUpdate = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -221,10 +194,6 @@ export const submitProjectUpdate = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * START PROJECT (mark In Progress)
- * PUT /api/student/projects/:id/start
- */
 export const startProject = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
@@ -252,10 +221,6 @@ export const startProject = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * GET PROJECT FEEDBACK/REJECTION REASON (Legacy/Compatibility)
- * GET /api/student/projects/:id/feedback
- */
 export const getProjectFeedback = async (req: Request, res: Response) => {
   try {
     const studentId = (req as any).user.studentId;
