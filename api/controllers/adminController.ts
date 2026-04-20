@@ -98,7 +98,7 @@ export const getStudents = async (req: Request, res: Response) => {
       ...studentData,
       rewardPoints: pointsMap[s._id.toString()] || 0,
       socials: profileMap[s._id.toString()] || null,
-      currentMentorName: mapping ? (mapping.mentorId as any).name : null
+      currentMentorName: mapping && mapping.mentorId ? (mapping.mentorId as any).name : null
     };
   }));
 
