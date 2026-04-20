@@ -38,6 +38,7 @@ router.post('/mentors', adminController.createMentor);
 router.get('/mentors', adminController.getMentors);
 router.get('/mentors/:id', adminController.getMentorById);
 router.put('/mentors/:id', adminController.updateMentor);
+router.post('/mentors/bulk', adminController.bulkUploadMentors);
 router.delete('/mentors/:id', adminController.deleteMentor);
 
 router.get('/projects', adminController.listProjects);

@@ -10,6 +10,7 @@ import Ranking from '../../models/Ranking';
 import Feedback from '../../models/Feedback';
 import Internship from '../../models/Internship';
 import mongoose from 'mongoose';
+import Approval from '../../models/Approval';
 
 export const getStudentDashboard = async (req: Request, res: Response) => {
   try {
@@ -140,11 +141,20 @@ export const getStudentDashboard = async (req: Request, res: Response) => {
           }
         },
         heatmap: activityData,
-        recentFeedback: recentFeedback.map(f => ({
-          id: f._id,
-          mentor: (f.mentorId as any)?.firstName,
-          message: f.message,
-          date: f.createdAt
+        recentFeedback: await Promise.all(recentFeedback.map(async (f) => {
+          const approval = await Approval.findOne({ 
+            entityId: f.sourceId, 
+            studentId: f.studentId 
+          }).sort({ approvedAt: -1 });
+          
+          return {
+            id: f._id,
+            mentor: (f.mentorId as any)?.firstName,
+            message: f.message,
+            date: f.createdAt,
+            source: f.source, // PROJECT, TASK, etc.
+            status: approval ? approval.status : 'COMMENT'
+          };
         })),
         recentActivities: activityLogs.slice(0, 10).map(log => ({
           date: log.date,

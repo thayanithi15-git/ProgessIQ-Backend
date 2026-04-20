@@ -272,3 +272,45 @@ export const bulkUploadStudents = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
+export const bulkUploadMentors = async (req: Request, res: Response) => {
+  try {
+    const { mentors } = req.body;
+    if (!Array.isArray(mentors)) return res.status(400).json({ success: false, message: 'Invalid payload' });
+
+    const results = { success: 0, failed: 0, errors: [] as any[] };
+
+    for (const data of mentors) {
+      try {
+        const password = data.password || 'Mentor123!';
+        const existing = await User.findOne({ email: data.email });
+        if (existing) {
+          results.failed++;
+          results.errors.push({ email: data.email, error: 'Email already exists' });
+          continue;
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const user = new User({ role: 'MENTOR', email: data.email, passwordHash });
+        await user.save();
+
+        try {
+          const mentor = new Mentor({ ...data, userId: user._id });
+          await mentor.save();
+          results.success++;
+        } catch (mentorErr: any) {
+          await User.findByIdAndDelete(user._id);
+          results.failed++;
+          results.errors.push({ email: data.email, error: mentorErr.message || 'Failed to create mentor details' });
+        }
+      } catch (err: any) {
+        results.failed++;
+        results.errors.push({ email: data.email, error: err.message });
+      }
+    }
+
+    res.status(200).json({ message: 'Bulk upload completed', results });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};

@@ -8,3 +8,7 @@ export { listCertifications } from './certifications';
 export { listTasks } from './tasks';
 export { listInternships, viewInternship } from './internships';
 export { listSurveys, viewSurveyResponses } from './surveys';
+
+export function bulkUploadMentors(arg0: string, bulkUploadMentors: any) {
+    throw new Error('Function not implemented.');
+}

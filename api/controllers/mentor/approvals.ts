@@ -251,6 +251,9 @@ export const updateApproval = async (req: Request, res: Response) => {
     }
 
     entity.status = normalizedStatus;
+    if (feedback) {
+      entity.verificationNote = feedback;
+    }
     await entity.save();
 
     const studentId = entity.studentId?.toString();
