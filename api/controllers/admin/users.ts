@@ -38,17 +38,26 @@ export const viewUser = async (req: Request, res: Response) => {
 };
 
 export const createStudentUser = async (req: Request, res: Response) => {
-  const data = req.body;
-  const password = data.password || 'ChangeMe123!';
-  const existing = await User.findOne({ email: data.email });
-  if (existing) return res.status(400).json({ message: 'Email exists' });
-  const passwordHash = await bcrypt.hash(password, 10);
-  const user = new User({ role: 'STUDENT', email: data.email, passwordHash });
-  await user.save();
+  try {
+    const data = req.body;
+    const password = data.password || 'ChangeMe123!';
+    const existing = await User.findOne({ email: data.email });
+    if (existing) return res.status(400).json({ message: 'Email exists' });
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = new User({ role: 'STUDENT', email: data.email, passwordHash });
+    await user.save();
 
-  const student = new Student({ ...data, userId: user._id });
-  await student.save();
-  res.status(201).json({ student, userId: user._id });
+    try {
+      const student = new Student({ ...data, userId: user._id });
+      await student.save();
+      res.status(201).json({ student, userId: user._id });
+    } catch (studentError: any) {
+      await User.findByIdAndDelete(user._id);
+      return res.status(400).json({ message: studentError.message || 'Failed to create student details' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
 };
 
 export const updateUser = async (req: Request, res: Response) => {
