@@ -90,14 +90,17 @@ export const getStudents = async (req: Request, res: Response) => {
   const profileMap: Record<string, any> = {};
   profiles.forEach((p: any) => { profileMap[p.studentId.toString()] = { github: p.github, linkedin: p.linkedin, leetcode: p.leetcode, portfolio: p.portfolio, codechef: p.codechef }; });
 
-  const mappedStudents = students.map((s: any) => {
+  const mappedStudents = await Promise.all(students.map(async (s: any) => {
     const studentData = s.toJSON ? s.toJSON() : s;
+    const mapping = await MentorStudentMapping.findOne({ studentId: s._id, isActive: true }).populate('mentorId', 'name');
+    
     return {
       ...studentData,
       rewardPoints: pointsMap[s._id.toString()] || 0,
-      socials: profileMap[s._id.toString()] || null
+      socials: profileMap[s._id.toString()] || null,
+      currentMentorName: mapping ? (mapping.mentorId as any).name : null
     };
-  });
+  }));
 
   res.json({
     students: mappedStudents,
@@ -130,13 +133,27 @@ export const deleteStudent = async (req: Request, res: Response) => {
 };
 
 export const createMentor = async (req: Request, res: Response) => {
-  const data = req.body;
-  const existing = await Mentor.findOne({ email: data.email });
-  if (existing) return res.status(400).json({ message: 'Mentor email exists' });
+  try {
+    const data = req.body;
+    const password = data.password || 'Mentor123!';
+    const existing = await User.findOne({ email: data.email });
+    if (existing) return res.status(400).json({ message: 'Email already exists' });
 
-  const mentor = new Mentor(data);
-  await mentor.save();
-  res.status(201).json({ mentor });
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = new User({ role: 'MENTOR', email: data.email, passwordHash });
+    await user.save();
+
+    try {
+      const mentor = new Mentor({ ...data, userId: user._id });
+      await mentor.save();
+      res.status(201).json({ mentor, userId: user._id });
+    } catch (mentorError: any) {
+      await User.findByIdAndDelete(user._id);
+      return res.status(400).json({ message: mentorError.message || 'Failed to create mentor details' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
 };
 
 export const getMentors = async (req: Request, res: Response) => {
