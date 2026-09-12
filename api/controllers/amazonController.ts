@@ -30,6 +30,13 @@ function frontendReturnUrl(params: string | string[][] | Record<string, string> 
   return `${base}${FRONTEND_RETURN_PATH}?${query}`;
 }
 
+interface ErrorResponseOptions {
+  status: number;
+  reason: string;
+  error: string;
+  details?: any;
+}
+
 /**
  * ============================================================
  * Respond to a failed callback
@@ -39,7 +46,11 @@ function frontendReturnUrl(params: string | string[][] | Record<string, string> 
  * has to redirect back to the app. A POST is an API call and
  * still gets JSON.
  */
-function respondWithError(req, res, { status, reason, error, details }) {
+function respondWithError(
+  req: Request,
+  res: Response,
+  { status, reason, error, details }: ErrorResponseOptions
+) {
   if (req.method === "POST") {
     return res.status(status).json({
       success: false,
