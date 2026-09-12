@@ -91,12 +91,15 @@ import adminRoutes from "./routes/adminRoutes";
 import mentorRoutes from "./routes/mentorRoutes";
 import studentRoutes from "./routes/studentRoutes";
 import notificationsRoutes from "./routes/notificationsRoutes";
+import amazonRoutes from "./routes/amazonRoutes";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/mentor", mentorRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/amazon", amazonRoutes);
+app.use("/api/amazon", amazonRoutes);
 import { processCronReminders } from "./services/cronService";
 
 app.get("/cron/send-reminders", async (req, res) => {
