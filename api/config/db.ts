@@ -1,7 +1,9 @@
-const { BigQuery } = require("@google-cloud/bigquery");
-require("dotenv").config();
+import { BigQuery } from "@google-cloud/bigquery";
+import dotenv from "dotenv";
 
-let credentials;
+dotenv.config();
+
+let credentials: any;
 try {
   if (!process.env.GOOGLE_CLOUD_CREDENTIALS) {
     throw new Error("GOOGLE_CLOUD_CREDENTIALS environment variable is not set");
@@ -9,7 +11,7 @@ try {
   credentials = JSON.parse(
     Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, "base64").toString("utf8")
   );
-} catch (error) {
+} catch (error: any) {
   console.error("Error parsing Google Cloud credentials:", error);
   process.exit(1); // Exit the application if credentials are invalid
 }
@@ -20,7 +22,7 @@ if (process.env.QUERY_PREVIEW_ENABLED === undefined) {
   process.env.QUERY_PREVIEW_ENABLED = "TRUE";
 }
 
-const bigquery = new BigQuery({
+const bigquery: any = new BigQuery({
   projectId: process.env.BIGQUERY_PROJECT_ID,
   // keyFilename: process.env.BIGQUERY_KEY_FILE
   credentials,
@@ -32,4 +34,4 @@ const bigquery = new BigQuery({
 });
 
 bigquery.credentials = credentials;
-module.exports = bigquery;
+export default bigquery;

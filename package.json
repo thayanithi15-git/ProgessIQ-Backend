@@ -17,7 +17,7 @@
   "dependencies": {
     "@google-cloud/bigquery": "^7.9.0",
     "@types/pdfkit": "^0.17.5",
-    "axios": "^1.7.0",
+    "axios": "^1.20.0",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "csv-writer": "^1.6.0",
