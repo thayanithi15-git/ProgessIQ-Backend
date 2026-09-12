@@ -90,7 +90,10 @@ function respondWithError(
  * Vendor:
  *   eqrev@2026fhr:vendor
  */
-function parseOAuthState(state) {
+function parseOAuthState(state: any): {
+  prefixState: string;
+  accountIdentifier: string;
+} {
   if (!state) {
     return {
       prefixState: "",
@@ -134,9 +137,9 @@ function parseOAuthState(state) {
  * AMAZON_STATE=eqrev@2026fhr
  */
 function validateOAuthState(
-  prefixState,
-  accountIdentifier
-) {
+  prefixState: string,
+  accountIdentifier: string
+): boolean {
   const expectedState = String(
     process.env.AMAZON_STATE || ""
   ).trim();
@@ -178,7 +181,10 @@ function validateOAuthState(
  * The env var name is returned alongside the value so a
  * misconfiguration names the exact variable that is missing.
  */
-function getSelectedApplicationId(accountIdentifier) {
+function getSelectedApplicationId(accountIdentifier: string): {
+  applicationId: string;
+  envVarName: string;
+} {
   if (
     accountIdentifier !== "seller" &&
     accountIdentifier !== "vendor"
@@ -214,7 +220,11 @@ function getSelectedApplicationId(accountIdentifier) {
  *
  * spapi_oauth_code -> refresh_token
  */
-function getLwaCredentials() {
+function getLwaCredentials(): {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+} {
   return {
     clientId: String(
       process.env.AMAZON_CLIENT_ID || ""
@@ -230,6 +240,13 @@ function getLwaCredentials() {
   };
 }
 
+interface ExchangeAmazonCodeParams {
+  authorizationCode: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+}
+
 /**
  * ============================================================
  * Exchange Amazon authorization code for tokens
@@ -240,7 +257,7 @@ async function exchangeAmazonCode({
   clientId,
   clientSecret,
   redirectUri,
-}) {
+}: ExchangeAmazonCodeParams): Promise<any> {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code: authorizationCode,
@@ -263,6 +280,13 @@ async function exchangeAmazonCode({
   );
 
   return response.data;
+}
+
+interface SaveAmazonTokenParams {
+  refreshToken: string;
+  clientId: string;
+  accountIdentifier: string;
+  sellingPartnerId: string;
 }
 
 /**
@@ -301,7 +325,7 @@ async function saveAmazonToken({
   clientId,
   accountIdentifier,
   sellingPartnerId,
-}) {
+}: SaveAmazonTokenParams): Promise<void> {
   const projectId = String(
     process.env.BIGQUERY_PROJECT_ID || ""
   ).trim();
@@ -425,9 +449,9 @@ export const handleAmazonCallback = async (req: Request, res: Response) => {
      * Read callback parameters
      * --------------------------------------------------------
      */
-    const payload = {
-      ...(req.query || {}),
-      ...(req.body || {}),
+    const payload: Record<string, any> = {
+      ...((req.query as Record<string, any>) || {}),
+      ...((req.body as Record<string, any>) || {}),
     };
 
     const state = payload.state
@@ -694,20 +718,20 @@ export const handleAmazonCallback = async (req: Request, res: Response) => {
         // This is the Amazon account selected by the user.
         sellingPartnerId,
       });
-    } catch (storageError) {
+    } catch (storageError: any) {
       // The token exchange already succeeded at this point, so
       // reporting this as an exchange failure would send anyone
       // debugging it to the wrong place.
       console.error(
         "[amazon/callback] Failed to store Amazon token:",
-        storageError.message
+        storageError?.message || storageError
       );
 
       return respondWithError(req, res, {
         status: 500,
         reason: "storage_failed",
         error: "Failed to store Amazon token",
-        details: storageError.message,
+        details: storageError?.message || String(storageError),
       });
     }
 
@@ -754,7 +778,7 @@ export const handleAmazonCallback = async (req: Request, res: Response) => {
         selling_partner_id: sellingPartnerId,
       })
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       "[amazon/callback] Amazon OAuth failed:",
       error.response?.data || error.message
