@@ -410,7 +410,16 @@ async function saveAmazonToken({
         @account_identifier AS account_identifier,
         @account_type AS account_type,
         @selling_partner_id AS selling_partner_id,
-        CURRENT_TIMESTAMP() AS created_at
+
+        -- Stored as IST wall-clock rather than the true UTC
+        -- instant. BigQuery always renders a TIMESTAMP in UTC,
+        -- so shifting by +5:30 is the only way the column reads
+        -- as Indian time in the console. The rest of the
+        -- warehouse already uses this convention.
+        TIMESTAMP_ADD(
+          CURRENT_TIMESTAMP(),
+          INTERVAL 330 MINUTE
+        ) AS created_at
     ) AS source
 
     ON IFNULL(target.selling_partner_id, '') = source.selling_partner_id
